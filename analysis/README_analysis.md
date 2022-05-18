@@ -1,16 +1,16 @@
-To reproduce the analysis, run the scripts in the order. Scripts 1-3 need to be ran on a HPC cluster (here: Euler from ETHZ Zürich)
+To reproduce the analysis, run the scripts in the order. Scripts 1 and 2 need to be run on a HPC cluster (here: Euler from ETHZ Zürich)
 
 
 ## 1.data_screening_euler.R
-Goes from fluxnet2015 raw data to dataframes ready for the deep learning model.
+Prepare fluxnet2015 raw data in the right format for the deep learning model.
 
 
 ## 2.run_ML_model_euler.R
-Runs the deep learning model itself.
+Runs the deep learning model.
 
 
 ## 3.summary_plots_euler.R
-Generates results on the performance of the model (Fig. 1). It divides the results in groups and prints the grouping statistics (Fig. 4) and prints the fET vs CWD figure (Fig. 5). 
+Generates results on the performance of the model (Fig. 1). It divides the results in groups and prints the grouping statistics (Fig. 4). It also prints the fET vs CWD multi-panel figure (Fig. 5). 
 
 
 ## 4.other_figures

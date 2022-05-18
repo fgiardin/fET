@@ -5,7 +5,7 @@ library(raster)
 library(ncdf4)
 
 # list files
-process_ldas_koen <- function(path, layer){
+process_ldas <- function(path, layer){
 
   # needs to be replaced with a function call
   # from ingestr
@@ -47,8 +47,4 @@ process_ldas_koen <- function(path, layer){
   return(df)
 }
 
-bla <- process_gldas(path = "NLDAS/", layer = "PEVAP")
-print(bla)
 
-bla <- process_gldas(path = "GLDAS/")
-print(bla)

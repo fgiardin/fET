@@ -1,7 +1,7 @@
-### read results from all sites and plot them together
+### read results from all sites and plot them
 
 #Load packages
-library(LSD) # load basic functions of LSD and then overwrite with beni's function
+library(LSD) # load basic functions of LSD and then overwrite with our functions based on LSD
 devtools::load_all(".")
 library(tidyverse)
 library(caret)
@@ -12,10 +12,9 @@ library(ggrepel)
 library(matlab)
 library(ggpubr)
 
-# 76 sites that passed "Successfully completed" with the NNpot = NNact(SM=1) method (important to have them to exclude older results still in output)
-#site_list = c("US-Los", "CZ-wet", "BR-Sa3", "NL-Loo", "AU-How", "FR-Pue", "IT-Isp", "US-Cop", "AU-RDF", "FR-LBr", "DE-Tha", "BE-Vie", "AU-Rob", "FR-Gri", "US-ARc", "DE-SfN", "US-GLE", "RU-Fyo", "CH-Dav", "IT-Tor", "CH-Cha", "BE-Lon", "DK-Sor", "FI-Hyy", "IT-SRo", "BE-Bra", "US-ARb", "AU-Wom", "AU-Stp", "FI-Sod", "US-ARM", "ES-LgS", "AU-Ync", "DE-Seh", "AU-Tum", "AU-Emr", "US-Blo", "US-MMS", "AU-Dry", "US-Ne1", "AU-DaS", "AU-Cpr", "AU-DaP", "AR-SLu", "US-Ne3", "AU-Cum", "US-Ton", "US-Syv", "US-Ne2", "US-Whs", "US-Wi0", "US-SRM", "US-SRG", "US-WCr", "AU-Gin", "AT-Neu", "IT-CA2", "US-Var", "DE-Kli", "US-AR2", "IT-SR2", "DE-Lkb", "IT-Ro2", "DE-Obe", "IT-BCi", "IT-CA3", "IT-Ren", "US-Me2", "IT-Lav", "DE-Gri", "IT-Col", "DE-Hai", "IT-PT1", "IT-MBo", "IT-Cpz", "DE-Geb")
 
-# 78 sites that "Successfully completed" the SM threshold method
+# List of sites that "Successfully completed" script 2.run_ML_model_euler.R
+
 # sites removed manually:
 # AU-Tum and US-Me2 (maxCWD not consistent, too high); "AR-SLu" (fishy ET bias profile)
 # US-ARc: spike of low values in the middle of fET vs CWD, not consistent
@@ -34,20 +33,22 @@ site_list = c("AT-Neu", "AU-Cpr", "AU-Cum", "AU-DaP", "AU-DaS", "AU-Emr", "AU-Gi
 
 
 ### FILTER SITES BASED ON MODEL PERFORMANCE ############################
-file_locations_out <- list.files("/Users/fgiardina/fvar/output", # define directory madre che contiene tutte le altre
+
+# get list of files we want to merge (here: output dataframes from script 2)
+file_locations_out <- list.files("data/output", # define directory where all files are
                                  glob2rx("out_*.RData"), # search for this pattern inside directory
                                  full.names = TRUE, # list all paths
                                  recursive = TRUE # go through all subdirectories
 )
 
 
-# CREATE DF WITH MODEL STATS PER SITE
-summary_allsites_raw <- do.call( # come una loop ma scritta in forma compatta
-  "rbind", # incolla dataframes together (function che verrà applicata)
+# CREATE DF WITH MODEL PERFORMANCE STATS PER SITE
+summary_allsites_raw <- do.call( # like a 'for' loop but in a more compact form
+  "rbind", # function that will be applied to dataframes calculated below (it binds dataframes together)
   lapply( # apply function to a list of objects
-    file_locations_out,  # list of all the segmented.Rdata
-    function(file){ # file è l'elemento i della lista (percorro la lista riga per riga)
-      load(file) # carico il df corrispondente a ogni riga
+    file_locations_out,  # list of files found above
+    function(file){ # file = ith element of the list (row by row)
+      load(file) # load the file
       print(file) # print filename so that I know where it fails
 
       # calculate model stats
@@ -61,23 +62,22 @@ summary_allsites_raw <- do.call( # come una loop ma scritta in forma compatta
       rmse_obs_pot_moistdays = out$df_all %>% dplyr::filter(moist) %>% na.omit %>% yardstick::rmse(nn_pot,obs)
       rmse_act_pot_moistdays = out$df_all %>% dplyr::filter(moist) %>% na.omit %>% yardstick::rmse(nn_pot,nn_act)
       # mean AET < mean PET during dry days
-      mean_AET = mean(out$df_all %>% dplyr::filter(!moist) %>% pull(nn_act), na.rm = TRUE) # pull directly extracts column as a vector (and not a df)
+      mean_AET = mean(out$df_all %>% dplyr::filter(!moist) %>% pull(nn_act), na.rm = TRUE)
       mean_PET = mean(out$df_all %>% dplyr::filter(!moist) %>% pull(nn_pot), na.rm = TRUE)
 
-      # merge all together
-      # R2 NNact-Obs here is different than in printed results (here is with CV, in results with df_all)
-      data.frame( # creo un dataframe con cio' che mi serve di quel df
+      # Create dataframe with stats
+      data.frame(
         name_of_site = substr(basename(file), 5, 10),
         num_rows = nrow(out$df_all),
-        R2_obs_act_alldays = as.numeric(R2_obs_act_alldays[1,3]), # metto as.numeric cosi non prende anche il nome della colonna
+        R2_obs_act_alldays = as.numeric(R2_obs_act_alldays[1,3]), # as.numeric removes the name of the column (output of yardstick)
         R2_obs_act_alldays_notCV = as.numeric(R2_obs_act_alldays_notCV[1,3]),
-        mean_AET = mean_AET, # mean AET < mean PET during dry days
+        mean_AET = mean_AET,
         mean_PET = mean_PET,
         R2_obs_pot_moistdays = as.numeric(R2_obs_pot_moistdays[1,3]),
         R2_act_pot_moistdays = as.numeric(R2_act_pot_moistdays[1,3]),
         R2_obs_pot_drydays = as.numeric(R2_obs_pot_drydays[1,3]),
         R2_obs_pot_alldays = as.numeric(R2_obs_pot_alldays[1,3]),
-        rmse_obs_act_alldays = as.numeric(rmse_obs_act_alldays[1,3]), # metto as.numeric cosi non prende anche il nome della colonna
+        rmse_obs_act_alldays = as.numeric(rmse_obs_act_alldays[1,3]),
         rmse_obs_pot_moistdays = as.numeric(rmse_obs_pot_moistdays[1,3]),
         rmse_act_pot_moistdays = as.numeric(rmse_act_pot_moistdays[1,3]),
         percent_dry = length(which(out$df_all$moist == FALSE))/nrow(out$df_all)
@@ -88,38 +88,41 @@ summary_allsites_raw <- do.call( # come una loop ma scritta in forma compatta
 
 # filter sites based on model performance and number of points
 summary_allsites <- summary_allsites_raw %>%
-  dplyr::filter(num_rows > 300) %>% # only take sites with at least ~1 year of points
-  dplyr::filter(name_of_site %in% site_list) %>% # take only sites that come from last run of model
+  dplyr::filter(num_rows > 300) %>% # take sites with at least ~1 year of points
+  dplyr::filter(name_of_site %in% site_list) %>% # take sites that come from last run of model
   dplyr::filter(R2_obs_act_alldays_notCV > 0.5) %>% # we decide to take R2 not from CV to include 3 more sites (most importantly the Finnish one, that has lower SM measurements)
   mutate(                                     #less stringent rule for mean PET and AET (to avoid excluding sites that otherwise have good results, like US-MMS)
     mean_PET_round = round(mean_PET, 1),      # round means at the first decimal
     mean_AET_round = round(mean_AET, 1)
   ) %>%
-  dplyr::filter(mean_PET_round >= mean_AET_round) # also include if they're equal (that is the case for most wet sites)
+  dplyr::filter(mean_PET_round >= mean_AET_round) # include also if they're equal (that is the case for most wet sites)
 
-save(summary_allsites, file = "./output/summary_allsites.RData")
+save(summary_allsites, file = "data/output/summary_allsites.RData")
 
 # extract final number of sites and save
 vec_sites = summary_allsites$name_of_site
-save(vec_sites, file = "./output/vec_sites.RData")
+save(vec_sites, file = "data/output/vec_sites.RData")
 
 
 ### SCATTER PLOTS ALL SITES POOLED TOGETHER ############################
-file_locations_out <- list.files("/Users/fgiardina/fvar/output", # define directory madre che contiene tutte le altre
-                             glob2rx("out_*.RData"), # search for this pattern inside directory
-                             full.names = TRUE, # list all paths
-                             recursive = TRUE # go through all subdirectories
+
+# same list as above
+file_locations_out <- list.files("data/output",
+                             glob2rx("out_*.RData"),
+                             full.names = TRUE,
+                             recursive = TRUE
                              )
 
-scatter_plots_raw <- do.call( # come una loop ma scritta in forma compatta
-  "rbind", # incolla dataframes together (function che verrà applicata)
-  lapply( # apply function to a list of objects
-    file_locations_out,  # list of all files
-    function(file){ # file è l'elemento i della lista (percorro la lista riga per riga)
-      load(file) # carico il df corrispondente a ogni riga
-      print(file) # print filename so that I know where it fails
+# this time we just need the output of the model
+scatter_plots_raw <- do.call(
+  "rbind",
+  lapply(
+    file_locations_out,
+    function(file){
+      load(file)
+      print(file)
 
-      out$df_all <- out$df_all %>%  # df_cv doesn't change scatter plots (ma visto che non ha fvar, i density plot non funzionano)
+      out$df_all <- out$df_all %>%
         mutate(name_site = substr(basename(file), 5, 10))
 
     }
@@ -134,36 +137,37 @@ scatter_plots <- scatter_plots_raw %>%
 
 ####*** SCATTERS ML MODEL ***####
 # Figure 1A
-file = sprintf("./output/scatter_nn_act-obs_allsites_1A.png")
+file = sprintf("data/output/scatter_nn_act-obs_allsites_1A.png")
 scatterheat(scatter_plots, "obs", "nn_act", "All days", file)
 
 # Figure 1B
-file = sprintf("./output/scatter_nn_pot-obs_moist_1B.png")
+file = sprintf("data/output/scatter_nn_pot-obs_moist_1B.png")
 scatterheat(scatter_plots %>% dplyr::filter(moist), "obs", "nn_pot", "Moist days", file)
 
 # now in supplementary figures
-file = sprintf("./output/scatter_nn_pot-obs_dry.png")
+file = sprintf("data/output/scatter_nn_pot-obs_dry.png")
 scatterheat(scatter_plots %>% dplyr::filter(!moist), "obs", "nn_pot", "Dry days", file)
 
-file = sprintf("./output/scatter_nn_act-pot_all.png")
+file = sprintf("data/output/scatter_nn_act-pot_all.png")
 scatterheat(scatter_plots %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
 
 
 ####*** SCATTERS LINEAR MODEL ***####
-file_locations_df <- list.files("/Users/fgiardina/fvar/output", # define directory madre che contiene tutte le altre
-                                glob2rx("ddf_??????.RData"), # search for this pattern inside directory
-                                full.names = TRUE, # list all paths
-                                recursive = TRUE # go through all subdirectories
-)
+# load dataframes used as model input (cleaned data)
+file_locations_df <- list.files("data/output",
+                                glob2rx("ddf_??????.RData"),
+                                full.names = TRUE,
+                                recursive = TRUE
+                                )
 
 # extract netrad and temperature
-ddf_allsites <- do.call( # come una loop ma scritta in forma compatta
-  "rbind", # incolla dataframes together (function che verrà applicata)
-  lapply( # apply function to a list of objects
-    file_locations_df,  # list of all the segmented.Rdata
-    function(file){ # file è l'elemento i della lista (percorro la lista riga per riga)
-      load(file) # carico il df corrispondente a ogni riga
-      print(file) # print filename so that I know where it fails
+ddf_allsites <- do.call(
+  "rbind",
+  lapply(
+    file_locations_df,
+    function(file){
+      load(file)
+      print(file)
 
       ddf <- ddf %>%
         mutate(name_site = substr(basename(file), 5, 10)) %>%
@@ -185,12 +189,12 @@ scatter_linear = scatter_linear %>%
   mutate(NETRAD_mass_coeff = NETRAD_mass*coeff)
 
 # scatter linear model
-file = sprintf("./output/scatter_nn_pot-obs_moist_linear_1D.png")
+file = sprintf("data/output/scatter_nn_pot-obs_moist_linear_1D.png")
 scatterheat(scatter_linear %>% dplyr::filter(moist), "obs", "NETRAD_mass_coeff", "Moist days", file)
 
 
 ####*** SCATTERS PRIESTLEY-TAYLOR MODEL ***####
-load("/Users/fgiardina/data/PET_Splash/PET_output.Rdata") # load PET from SPLASH
+df_output <- readRDS("data/PET_output.rds") # load PET from SPLASH
 
 # initialize empty dataframe
 scatter_priestley_raw <- setNames(data.frame(matrix(ncol = 3, nrow = 0)), c("date", "pet_splash", "name_site"))
@@ -225,58 +229,25 @@ scatter_priestley = scatter_priestley %>%
   mutate(pet_splash_coeff = pet_splash*coeff)
 
 # scatter priestley-taylor
-file = sprintf("./output/scatter_nn_pot-obs_moist_priestley_1C.png")
+file = sprintf("data/output/scatter_nn_pot-obs_moist_priestley_1C.png")
 scatterheat(scatter_priestley %>% dplyr::filter(moist), "obs", "pet_splash_coeff", "Moist days", file)
-
-####*** SCATTERS GLDAS ***#### (not used)
-# load GLDAS DF for all sites
-file_locations_out <- list.files("/Users/fgiardina/fvar/output_GLDAS", # define directory madre che contiene tutte le altre
-                                 glob2rx("ddf_gldas_??????.RData"), # search for this pattern inside directory
-                                 full.names = TRUE, # list all paths
-                                 recursive = TRUE # go through all subdirectories
-)
-
-GLDAS_allsites_raw <- do.call( # come una loop ma scritta in forma compatta
-  "rbind", # incolla dataframes together (function che verrà applicata)
-  lapply( # apply function to a list of objects
-    file_locations_out,  # list of all files
-    function(file){ # file è l'elemento i della lista (percorro la lista riga per riga)
-      load(file) # carico il df corrispondente a ogni riga
-      print(file) # print filename so that I know where it fails
-
-      ddf_gldas <- ddf_gldas %>%
-        mutate(name_site = substr(basename(file), 11, 16))
-
-    }
-  )
-)
-
-scatter_gldas <- scatter_plots %>%
-  left_join(GLDAS_allsites_raw %>%
-              mutate(PET_gldas = PET) %>%
-              dplyr::select(-PET, -ET, -P, -fvar)
-            , by = c("date", "name_site"))
-
-# scatter gldas
-file = sprintf("./output/scatter_nn_pot-obs_moist_gldas.png")
-scatterheat(scatter_gldas %>% dplyr::filter(moist), "obs", "PET_gldas", "Moist days", file)
 
 
 ### BINNING ###########################################################
 # GET EF for all sites (used to double check fET)
-file_locations_df <- list.files("/Users/fgiardina/fvar/output", # define directory madre che contiene tutte le altre
-                                 glob2rx("ddf_??????.RData"), # search for this pattern inside directory
-                                 full.names = TRUE, # list all paths
-                                 recursive = TRUE # go through all subdirectories
+file_locations_df <- list.files("data/output",
+                                 glob2rx("ddf_??????.RData"),
+                                 full.names = TRUE,
+                                 recursive = TRUE
 )
 
-EF_allsites <- do.call( # come una loop ma scritta in forma compatta
-  "rbind", # incolla dataframes together (function che verrà applicata)
-  lapply( # apply function to a list of objects
-    file_locations_df,  # list of all the segmented.Rdata
-    function(file){ # file è l'elemento i della lista (percorro la lista riga per riga)
-      load(file) # carico il df corrispondente a ogni riga
-      print(file) # print filename so that I know where it fails
+EF_allsites <- do.call(
+  "rbind",
+  lapply(
+    file_locations_df,
+    function(file){
+      load(file)
+      print(file)
 
       ddf <- ddf %>%
         mutate(name_site = substr(basename(file), 5, 10)) %>%
@@ -287,7 +258,7 @@ EF_allsites <- do.call( # come una loop ma scritta in forma compatta
 )
 
 # GET CWD FOR ALL SITES
-file_locations_CWD <- list.files("/Users/fgiardina/fvar/output", # define directory madre che contiene tutte le altre
+file_locations_CWD <- list.files("data/output", # define directory madre che contiene tutte le altre
                                 glob2rx("ddf_CWD_??????.RData"), # search for this pattern inside directory
                                 full.names = TRUE, # list all paths
                                 recursive = TRUE # go through all subdirectories
@@ -323,7 +294,7 @@ plot_allsites_raw <- CWD_allsites %>%
   dplyr::filter(name_site %in% vec_sites) %>%
   na.omit()
 
-save(plot_allsites_raw, file = "./output/plot_allsites_raw.RData")
+save(plot_allsites_raw, file = "data/output/plot_allsites_raw.RData")
 
 # filter outliers
 plot_allsites <- plot_allsites_raw %>%
@@ -343,7 +314,7 @@ clusters <- plot_allsites_raw %>%
   dplyr::filter(fvar < 1.5) %>% # focus on 0-1.5 interval
   dplyr::filter(fvar > 0) %>%
   group_by(name_site) %>%
-  dplyr::filter(between(fvar, ### REMOVE outliers in the distribution of every site (statistically)
+  dplyr::filter(between(fvar, ### REMOVE outliers in the distribution of every site
                         mean(fvar, na.rm=TRUE) - (2.5 * sd(fvar, na.rm=TRUE)),
                         mean(fvar, na.rm=TRUE) + (2.5 * sd(fvar, na.rm=TRUE)))) %>%
   dplyr::filter(deficit > 125) %>% # filter only CWD values around 150 mm
@@ -355,7 +326,7 @@ clusters <- plot_allsites_raw %>%
   ungroup()
 
 
-# cluster along fvar median in CWD bin centered around 150 mm
+# group sites along fvar median in CWD bin centered around 150 mm
 set.seed(23)
 cluster_data <- kmeans(clusters$median_fvar, 3, iter.max = 10, nstart = 25)
 clusters$cluster = factor(cluster_data$cluster)
@@ -372,12 +343,12 @@ clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET",
 #### Histogram
 # calculate bin width (Freedman-Diaconis rule)
 bw <- (2 * IQR(clusters$median_fvar)) / (length(clusters$median_fvar)^(1/3)) # Freedman-Diaconis rule not only considers the sample size
-# but also considers the spread of the sample.
+                                                                            # but also the spread of the sample.
 
 # color by cluster
 mu <- plyr::ddply(clusters, "cluster", summarise, grp.mean=mean(median_fvar)) # calculate average weight of each group
 a <- ggplot(clusters, aes(x=median_fvar, color=cluster, fill=cluster)) +
-  geom_histogram(alpha=0.5, position="identity", binwidth = bw) +   # position="stack"
+  geom_histogram(alpha=0.5, position="identity", binwidth = bw) +
   geom_vline(data=mu, aes(xintercept=grp.mean, color=cluster),
              linetype="dashed") +
   theme_classic() +
@@ -390,7 +361,7 @@ a <- ggplot(clusters, aes(x=median_fvar, color=cluster, fill=cluster)) +
   ) +
   scale_y_reverse() +
   coord_flip() +
-  xlab("fET (-)") +   # median at CWD = 150 mm
+  xlab("fET (-)") +
   ylab("Number of sites") +
   scale_x_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5))
 a
@@ -425,7 +396,7 @@ ggsave("Fig_binning.png", path = "./", width = 8, height = 4)
 plot_allsites_fvar <- plot_allsites %>%
   left_join(clusters, by = "name_site") %>%
   mutate(cluster = replace(cluster, is.na(cluster), "high fET"))  # manually add spare sites to 'high ET' bin
-save(plot_allsites_fvar, file = "./output/plot_allsites_fvar.RData")
+save(plot_allsites_fvar, file = "data/output/plot_allsites_fvar.RData")
 
 # overwrite 'clusters' with the sites added manually
 clusters <- plot_allsites_fvar %>%
@@ -434,7 +405,7 @@ clusters <- plot_allsites_fvar %>%
 clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET", "high fET"))
 
 # directly load df
-load("./output/00_Figures_final/dataframes/plot_allsites_fvar.RData")
+load("data/output/00_Figures_final/dataframes/plot_allsites_fvar.RData")
 
 ### PANEL A: high fET
 # get site names inside bin
@@ -447,7 +418,7 @@ plot_a <- plot_allsites_fvar %>%
   dplyr::filter(cluster == "high fET")
 
 # plot
-a <- heatscatter(x=plot_a$deficit, y = plot_a$fvar, ggplot = TRUE) #ylorrd
+a <- heatscatter(x=plot_a$deficit, y = plot_a$fvar, ggplot = TRUE)
 a <- a +
   labs(
     y = "fET (-)",
@@ -533,19 +504,19 @@ e
 
 ####*** CHARTS GLDAS ***####
 # GLDAS DF
-file_locations_out <- list.files("/Users/fgiardina/fvar/output_GLDAS", # define directory madre che contiene tutte le altre
-                                 glob2rx("ddf_gldas_??????.RData"), # search for this pattern inside directory
-                                 full.names = TRUE, # list all paths
-                                 recursive = TRUE # go through all subdirectories
+file_locations_out <- list.files("data/output_GLDAS",
+                                 glob2rx("ddf_gldas_??????.RData"),
+                                 full.names = TRUE,
+                                 recursive = TRUE
 )
 
-GLDAS_allsites_raw <- do.call( # come una loop ma scritta in forma compatta
-  "rbind", # incolla dataframes together (function che verrà applicata)
-  lapply( # apply function to a list of objects
-    file_locations_out,  # list of all files
-    function(file){ # file è l'elemento i della lista (percorro la lista riga per riga)
-      load(file) # carico il df corrispondente a ogni riga
-      print(file) # print filename so that I know where it fails
+GLDAS_allsites_raw <- do.call(
+  "rbind",
+  lapply(
+    file_locations_out,
+    function(file){
+      load(file)
+      print(file)
 
       ddf_gldas <- ddf_gldas %>%
         mutate(name_site = substr(basename(file), 11, 16))
@@ -561,7 +532,7 @@ GLDAS_allsites <- GLDAS_allsites_raw %>%
   dplyr::filter(fvar < 1.5) %>% # focus on 0-1.5 interval
   dplyr::filter(fvar > 0) %>%
   group_by(name_site) %>%
-  dplyr::filter(between(fvar, ### REMOVE outliers in the distribution of every site (statistically)
+  dplyr::filter(between(fvar, ### REMOVE outliers in the distribution of every site
                         mean(fvar, na.rm=TRUE) - (2.5 * sd(fvar, na.rm=TRUE)),
                         mean(fvar, na.rm=TRUE) + (2.5 * sd(fvar, na.rm=TRUE)))) %>%
   ungroup()
@@ -569,22 +540,22 @@ GLDAS_allsites <- GLDAS_allsites_raw %>%
 
 ### get CWD GLDAS
 # GET CWD FOR ALL SITES
-file_locations_CWD <- list.files("/Users/fgiardina/fvar/output_GLDAS", # define directory madre che contiene tutte le altre
-                                 glob2rx("ddf_CWD_gldas_??????.RData"), # search for this pattern inside directory
-                                 full.names = TRUE, # list all paths
-                                 recursive = TRUE # go through all subdirectories
+file_locations_CWD <- list.files("data/output_GLDAS",
+                                 glob2rx("ddf_CWD_gldas_??????.RData"),
+                                 full.names = TRUE,
+                                 recursive = TRUE
 )
 
-# IT-Cpz is empty (somehow not extracted from original NetCDF data)
-CWD_allsites_gldas <- do.call( # come una loop ma scritta in forma compatta
-  "rbind", # incolla dataframes together (function che verrà applicata)
-  lapply( # apply function to a list of objects
-    file_locations_CWD,  # list of all the segmented.Rdata
-    function(file){ # file è l'elemento i della lista (percorro la lista riga per riga)
-      load(file) # carico il df corrispondente a ogni riga
-      print(file) # print filename so that I know where it fails
 
-      if(!dim(ddf_CWD_gldas$inst)[1] == 0){ # avoid empty df (no data could be extracted)
+CWD_allsites_gldas <- do.call(
+  "rbind",
+  lapply(
+    file_locations_CWD,
+    function(file){
+      load(file)
+      print(file)
+
+      if(!dim(ddf_CWD_gldas$inst)[1] == 0){ # avoid empty df (when no data could be extracted)
         # big instances
         biginstances <- ddf_CWD_gldas$inst %>%
           mutate(year = lubridate::year(date_start)) %>%
@@ -614,16 +585,8 @@ plot_allsites_gldas <- plot_allsites_gldas %>%
   ) %>%
   ungroup()
 
-# multiply PET by scaling constant based on AET (work less effectively than scaling above)
-lm_model = lm(ET ~ PET + 0, plot_allsites_gldas)
-coeff = lm_model[["coefficients"]][["PET"]]
-
-plot_allsites_gldas = plot_allsites_gldas %>%
-  mutate(PET_k = PET*coeff) %>%
-  mutate(fvar_k = ET/PET_k)
-
 # save
-save(plot_allsites_gldas, file = "./output/plot_allsites_gldas.RData")
+save(plot_allsites_gldas, file = "data/output/plot_allsites_gldas.RData")
 
 ### Plot all sites GLDAS
 z <- heatscatter(x=plot_allsites_gldas$deficit, y = plot_allsites_gldas$fvar_scaled, ggplot = TRUE)
@@ -866,16 +829,13 @@ table1 <- siteinfo_fluxnet %>%
   dplyr::filter(mysitename %in% vec_sites) %>%
   rename(name_site = mysitename) %>%
   left_join(clusters %>% dplyr::select(name_site, cluster), by = c("name_site")) %>%
-  # mutate(cluster = ifelse(cluster==1,"wet",cluster)) %>%
-  # mutate(cluster = ifelse(cluster==3,"dry",cluster)) %>%
-  # mutate(cluster = ifelse(cluster==2,"superdry",cluster)) %>%
   mutate(lon = round(lon, 2)) %>%
   mutate(lat = round(lat, 2))
 
-save(table1, file = "./output/table1_raw.RData")
+save(table1, file = "data/output/table1_raw.RData")
 
-# adjust table formatting (raggruppare colonne e rimuovere non necessarie)
-table1$Coordinates <- paste0(table1$lon, ", ", table1$lat)  #paste0 non mette spazi di default
+# adjust table formatting for table 1 (group columns and remove unnecesessary ones)
+table1$Coordinates <- paste0(table1$lon, ", ", table1$lat)  # paste0 does not put spaces
 table1$Years <- paste(table1$year_start, "-", table1$year_end)
 table1 <- table1 %>%
   dplyr::select(-lon, -lat, -year_start, -year_end) %>%
@@ -893,6 +853,6 @@ table1 <- table1 %>%
             by = c("name_site")
             )
 
-save(table1, file = "./output/table1.RData")
+save(table1, file = "data/output/table1.RData")
 
 

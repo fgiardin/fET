@@ -1,5 +1,10 @@
 #!/usr/bin/env Rscript
 
+# The first 2 lines of code are to run it on Euler. You can run it locally by
+# manually defining the 'sitename' (use FLUXNET2015 nomenclature).
+# This script automatically create a directory for every site in data/output
+# where output from this script and 2.run_ML_model_euler.R are saved.
+
 ## evaluate arguments (they are then available as args[1], args[2], ...
 args = commandArgs(trailingOnly=TRUE)
 
@@ -8,30 +13,22 @@ sitename = args[1] # put equal to args(1)
 
 #Load packages
 devtools::load_all(".")
-library(tidyverse)  
+library(tidyverse)
 library(caret)
 library(bigleaf)
 library(data.table)
 
-# Import TensorFlow and the TensorBoard HParams plugin
-# library(tensorflow)
-# library(reticulate)
-# #use_condaenv("r-reticulate")
-# library(keras)
-# #is_keras_available()
-# hp <- import("tensorboard.plugins.hparams.api")
-# library(tfruns) 
-# library(tfestimators) 
 
-########################################################################
-### LOAD GAPFILLED DATASET FROM FLUE BENI ##############################
-########################################################################
+
+# LOAD GAPFILLED DATASET FROM Stocker at al. 2018 -------------------------
+# This dataset was gapfilled with single-layer neural networks and it is
+# used here to calculate CWD only (see methods)
 
 # load df
-load("~/data/fLUE/modobs_fluxnet2015_s11_s12_s13_with_SWC_v3.Rdata") # path 
+fluxnet <- readRDS("~/data/fLUE/modobs_fluxnet2015_s11_s12_s13_with_SWC_v3.rds")
 
 ddf_flue_raw <- fluxnet[[sitename]]
-# extract data from beni's original df
+
 year <- ddf_flue_raw[["ddf"]][["s11"]][["year"]]
 doy <- ddf_flue_raw[["ddf"]][["s11"]][["doy"]]
 moy <- ddf_flue_raw[["ddf"]][["s11"]][["moy"]]
@@ -56,7 +53,7 @@ ddf_flue <- data.frame(
   year,
   doy,
   moy,
-  dom, 
+  dom,
   TA_F,
   LE_F_MDS,
   P_F,
@@ -73,32 +70,31 @@ ddf_flue <- data.frame(
 )
 
 # adjust date
-ddf_flue$date <- paste(ddf_flue$year, ddf_flue$moy, ddf_flue$dom, sep="-") %>% 
+ddf_flue$date <- paste(ddf_flue$year, ddf_flue$moy, ddf_flue$dom, sep="-") %>%
   lubridate::ymd()
 
 # calculate ET
-ddf_flue <- ddf_flue %>% 
+ddf_flue <- ddf_flue %>%
   mutate(ET = LE.to.ET(LE_F_MDS, TA_F)) %>% #get ET with bigleaf function (mm/s)
-  # mutate(ET = ET*30*60) %>%  # convert to mm/day (tot mm in 30 min) È giusto
-  mutate(water_balance = P_F - ET) %>%  # both P and ET in mm (absolute in 30 mm)
+  mutate(water_balance = P_F - ET) %>%  # both P and ET in mm/s (absolute in 30 minutes)
   dplyr::select(-year,-doy,-moy,-dom)
 
 # calculate CWD with gapfilled data and save it
 ddf_CWD <- mct(
   ddf_flue %>%
     dplyr::select(water_balance,date) %>%
-    mutate(date = lubridate::date(date)) %>%  
-    group_by(date) %>% #group_by(date, hour) %>%
+    mutate(date = lubridate::date(date)) %>%
+    group_by(date) %>%
     summarise(
-      water_balance = sum(water_balance, na.rm = TRUE), # SUM (altrimenti sono tipo valori istantanei)
-    ) %>% 
+      water_balance = sum(water_balance, na.rm = TRUE),
+    ) %>%
     na.omit(),
   "water_balance",
   "date"
 )
 
 # create directory with site name to save all data
-dir_name = sprintf("./output/%s", sitename)
+dir_name = sprintf("data/output/%s", sitename)
 dir.create(dir_name)
 
 # create subdirectories
@@ -109,41 +105,47 @@ dir.create(TS_path)
 
 # save df flue
 flue_name = sprintf("%s/ddf_flue_%s.RData", data_frames_path, sitename)
-save(ddf_flue, file = flue_name) 
+save(ddf_flue, file = flue_name)
 
 # save CWD file
 CWD_name = sprintf("%s/data_frames/ddf_CWD_%s.RData", dir_name, sitename)
-save(ddf_CWD, file = CWD_name) 
+save(ddf_CWD, file = CWD_name)
 
 
-########################################################################
-### LOAD RAW DATA FROM FLUXNET AND PROCESS IT AS IN XI LI  #############
-########################################################################
+
+# LOAD RAW DATA FROM FLUXNET AND PROCESS IT AS IN LI et al. 2018 ----------
+
+# the directory ~/data/FLUXNET-2015_Tier1/20191024/HH must contain all original
+# half-hourly fluxnet2015 .CSV files as available on https://fluxnet.org/data/fluxnet2015-dataset/
+# If running locally, you can try setting filename = "AU-Wom" and load the .csv located
+# here: /data-raw/FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv
+# in this case, directly read the commented local path
 
 # extract list of files in directory
 file_list <- list.files(path="~/data/FLUXNET-2015_Tier1/20191024/HH") # path
 
 # find the name of the file which contains the site name
-grepsite <- sprintf("%s_FLUXNET2015_FULLSET", sitename) 
+grepsite <- sprintf("%s_FLUXNET2015_FULLSET", sitename)
 filename <- grep(grepsite, file_list, value=TRUE)
 
 # read it
-csv_path <- sprintf("~/data/FLUXNET-2015_Tier1/20191024/HH/%s", filename) # local path
+csv_path <- sprintf("~/data/FLUXNET-2015_Tier1/20191024/HH/%s", filename)
+#csv_path <- sprintf("data-raw/FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv") # local path
 
-raw_dataHH <- fread(csv_path)  
+raw_dataHH <- fread(csv_path)
 
 # load and process data
-hhdf <- raw_dataHH %>% 
+hhdf <- raw_dataHH %>%
   # select only relevant data
   dplyr::select(
-    one_of( #one_of only gives a warning if the column doesn't exist (otherwise gives error that blocks execution)
-      "TIMESTAMP_START", 
-      "TIMESTAMP_END", 
+    one_of( #one_of only gives a warning if the column doesn't exist (without it, it gives error that blocks execution)
+      "TIMESTAMP_START",
+      "TIMESTAMP_END",
       "TA_F", #temperature
       "TA_F_QC",
       "NETRAD", #Net radiation
       "WS_F", #windspeed
-      "WS_F_QC", 
+      "WS_F_QC",
       "LE_F_MDS", #latent heat
       "LE_F_MDS_QC",
       "P_F",
@@ -153,10 +155,10 @@ hhdf <- raw_dataHH %>%
       "VPD_F_QC",
       "H_CORR", # Sensible heat flux, W/m2
       "H_F_MDS",
-      "H_F_MDS_QC", 
+      "H_F_MDS_QC",
       "GPP_NT_VUT_REF", # GPP
       "NEE_VUT_REF_QC", # 0 = measured; 1 = good quality gapfill; 2 = medium; 3 = poor
-      "SW_IN_POT", #incoming shortwave radiation at the top of atm 
+      "SW_IN_POT", #incoming shortwave radiation at the top of atm
       "RH",
       "G_F_MDS",
       "G_F_MDS_QC" # soil heat flux
@@ -164,35 +166,28 @@ hhdf <- raw_dataHH %>%
     starts_with("SWC_F_MDS"), #soil moisture (all layers)
     starts_with("TS_F_MDS"), #soil temperature (all layers)
   ) %>%
-  
-  # time conversion 
+  # time conversion
   mutate(TIMESTAMP_START = lubridate::ymd_hm(TIMESTAMP_START)) %>%
   mutate(TIMESTAMP_END = lubridate::ymd_hm(TIMESTAMP_END)) %>%
-  
-  # mutate(TIMESTAMP_START = as.POSIXct(TIMESTAMP_START, format = "%Y-%m-%dT%TZ")) %>%
-  # mutate(TIMESTAMP_END = as.POSIXct(TIMESTAMP_END, format = "%Y-%m-%dT%TZ")) %>%
-  
   rename(date = TIMESTAMP_END) %>%
-  
-  # correctly represent missing data
-  na_if(-9999) 
+  na_if(-9999)   # correctly represent missing data
 
 # choose H variable
 if (all(is.na(hhdf$H_CORR))) {
-  hhdf <- hhdf %>% 
-    mutate(H = H_F_MDS) %>% 
+  hhdf <- hhdf %>%
+    mutate(H = H_F_MDS) %>%
     dplyr::select(-H_F_MDS,-H_CORR)
 } else {
-  hhdf <- hhdf %>% 
+  hhdf <- hhdf %>%
     mutate(H = H_CORR) %>%  # if available, use H_CORR
     dplyr::select(-H_F_MDS,-H_CORR)
 }
 
 # calculate RH if not available
-RH_flag = "RH" %in% names(raw_dataHH) 
+RH_flag = "RH" %in% names(raw_dataHH)
 
 if (!RH_flag) {
-  hhdf <- hhdf %>% 
+  hhdf <- hhdf %>%
     mutate(
       VPD_F = ifelse(VPD_F_QC %in% c(0,1), VPD_F, NA),
       TA_F = ifelse(TA_F_QC %in% c(0,1), TA_F, NA),
@@ -200,7 +195,7 @@ if (!RH_flag) {
     )
 }
 
-## filter data based on quality check 
+## filter data based on quality check
 # 0 = measured; 1 = good quality gapfill; 2 = medium; 3 = poor
 
 # first handle multi-layered variables
@@ -209,7 +204,7 @@ for (i in 1:10){
   SWC_QC = sprintf("SWC_F_MDS_%d_QC", i)
   flag_layer = SWC %in% names(raw_dataHH) && SWC_QC %in% names(raw_dataHH)
   if (flag_layer) {
-    hhdf <- hhdf %>% 
+    hhdf <- hhdf %>%
       mutate(
         SWC = ifelse(SWC_QC %in% c(0,1), SWC, NA),
       )
@@ -221,14 +216,14 @@ for (i in 1:10){
   TS_QC = sprintf("TS_F_MDS_%d_QC", i)
   flag_layer = TS %in% names(raw_dataHH) && TS_QC %in% names(raw_dataHH)
   if (flag_layer) {
-    hhdf <- hhdf %>% 
+    hhdf <- hhdf %>%
       mutate(
         TS = ifelse(TS_QC %in% c(0,1), TS, NA),
       )
   }
 }
 
-hhdf <- hhdf %>% 
+hhdf <- hhdf %>%
   mutate(
     TA_F = ifelse(TA_F_QC %in% c(0,1), TA_F, NA),
     WS_F = ifelse(WS_F_QC %in% c(0,1), WS_F, NA),
@@ -242,15 +237,16 @@ hhdf <- hhdf %>%
     # NETRAD = ifelse(NETRAD_QC %in% c(0,1), NETRAD, NA),
     # USTAR = ifelse(USTAR_QC %in% c(0,1), USTAR, NA)
   ) %>%
-  
-  # erase QC variables 
-  dplyr::select(-ends_with("_QC")) %>% 
-  
+
+  # erase QC variables
+  dplyr::select(-ends_with("_QC")) %>%
+
   # calculate ET (with quality checked data)
   mutate(ET = LE.to.ET(LE_F_MDS, TA_F)) %>% #get ET with bigleaf function (mm/s)
-  mutate(ET = ET*30*60) # convert to absolute mm in 30min (like P_F) -- È giusto 
-# NOTA: se uso ddf finale per calcolare ET and P IAV, può venirmi risultato strano (tipo P < ET)
-# È NORMALE perché ho filtrato un botto di valori qua sotto (e.g. tutta la pioggia di notte, mentre ET succede soprattutto di giorno, quindi è normale se mi viene ET > P!)
+  mutate(ET = ET*30*60) # convert to absolute mm in 30min (like P_F)
+
+# Note: using the final screened dataframe to calculate CWD would give erroneous results.
+# We are filtering times with rain, so IAV of P and ET won't be reliable for such calculations.
 
 # DEFINE RAIN FILTER
 # exclude 6 hours after rain event; threshold: 0mm
@@ -268,8 +264,7 @@ for (i in 1:nrow(hhdf)) {
   }
 }
 
-
-#REMOVE DATA (as Xi Li paper, only exception: they use 9-17h filter for day time)
+#REMOVE DATA (as in Xi Li et al. 2018, only exception: they use 9-17h filter for day time, we filter on GPP)
 hhdf <- hhdf %>%
   dplyr::filter(!is.na(precip_flag)) %>%  # take only rows where precip_flag is not NA (filter defined above)
   dplyr::filter(GPP_NT_VUT_REF > 0.0) %>% # day-time only
@@ -278,43 +273,42 @@ hhdf <- hhdf %>%
   dplyr::filter(LE_F_MDS > 5) %>%
   dplyr::filter(SW_IN_POT > 50) %>%
   dplyr::filter(RH < quantile(RH, 0.95, na.rm = TRUE)) %>%  # get rid of RH higher than 95% quantile
-  dplyr::select(-precip_flag) # remove useless columns 
-  
-#filter on seasonal GPP: better not use for our application
+  dplyr::select(-precip_flag) # remove useless columns
 
 ### KEEP ONLY DAYS WITH AT LEAST 8 SINGLE MEASUREMENT POINTS ###
+# To have daily mean calculated with significant number of points
 hhdf <- hhdf %>%
-  mutate(day = lubridate::date(date)) %>% 
+  mutate(day = lubridate::date(date)) %>%
   group_by(day) %>%
-  filter(n() > 7) %>% 
-  ungroup() %>% 
+  filter(n() > 7) %>%
+  ungroup() %>%
   dplyr::select(-day)
 
-# aggregate to daily (tutto sto casino per evitare che dia errore quando SWC non c'è)
-ddf <- inner_join(hhdf %>%                                                       
-                    mutate(date = lubridate::date(date)) %>%  
+# aggregate to daily (nested format, so that it works even if SWC is not provided)
+ddf <- inner_join(hhdf %>%
+                    mutate(date = lubridate::date(date)) %>%
                     group_by(date) %>%
                     summarise_if(is.numeric, mean, na.rm = TRUE) %>% # calculate daily MEAN for most variables
                     dplyr::select(-P_F, -ET, -VPD_F), # remove columns where I don't calculate the mean
                   inner_join(
-                    hhdf %>%                                                     
-                      mutate(date = lubridate::date(date)) %>%  
-                      dplyr::select(date, P_F, ET) %>% 
+                    hhdf %>%
+                      mutate(date = lubridate::date(date)) %>%
+                      dplyr::select(date, P_F, ET) %>%
                       group_by(date) %>%
                       summarise(P_F = sum(P_F, na.rm = TRUE), # calculate daily sum (for P and ET)
                                 ET = sum(ET, na.rm = TRUE)),
-                    hhdf %>%                                                     
-                      mutate(date = lubridate::date(date)) %>%  
+                    hhdf %>%
+                      mutate(date = lubridate::date(date)) %>%
                       dplyr::select(date, VPD_F) %>% # calculate daily max for VPD
                       group_by(date) %>%
-                      summarise(VPD_F = max(VPD_F, na.rm = TRUE)),  by = c('date')), by = c('date')) %>% 
-  ungroup() 
-      
+                      summarise(VPD_F = max(VPD_F, na.rm = TRUE)),  by = c('date')), by = c('date')) %>%
+  ungroup()
+
 # calculate EF (imp: after calculating daily LE and NETRAD daily means - otherwise noisy)
-ddf <- ddf %>% 
+ddf <- ddf %>%
   mutate(EF = LE_F_MDS/NETRAD) # G_F_MDS ~ 0 if daily sum
 
-# append SM from fLUE (EVI, fAPAR_modis, wcont_s11, wcont_s12, wcont_s13, soilm_from_et, soilm_from_et_orthbucket)
+# append modelled soil moisture and EVI from Stocker et al. 2018
 ddf_flue = ddf_flue %>%
   dplyr::select(date, EVI, fAPAR_modis, wcont_s11, wcont_s12, wcont_s13, soilm_from_et, soilm_from_et_orthbucket)
 ddf = ddf %>%
@@ -323,20 +317,20 @@ ddf = ddf %>%
 # save everything
 file1 = sprintf("%s/data_frames/hhdf_%s.RData", dir_name, sitename)
 file2 = sprintf("%s/data_frames/ddf_%s.RData", dir_name, sitename)
-save(hhdf, file = file1) 
+save(hhdf, file = file1)
 save(ddf, file = file2)
 
 
-########################################################################
-### PRINT TIMESERIES OF ENVIRONMENTAL VARIABLES  #######################
-########################################################################
 
-# Visualize missing data 
+# PRINT TIMESERIES OF ENVIRONMENTAL VARIABLES -----------------------------
+# Used to check individual sites in analysis -- not provided here (for storage reasons)
+
+# Visualize missing data
 library(visdat)
-ddf %>% 
-  #slice(1:10000) %>% 
-  vis_miss(   # DON'T use sample_n with visdat, it shuffles the data randomly 
-    cluster = FALSE, 
+ddf %>%
+  #slice(1:10000) %>%
+  vis_miss(   # DON'T use sample_n with visdat, it shuffles the data randomly
+    cluster = FALSE,
     sort_miss = TRUE
   )
 ggsave("missing_data.png", path = TS_path, width = 5, height = 3)
@@ -375,7 +369,7 @@ if ("EVI" %in% names(ddf)) {
 }
 
 
-# VPD 
+# VPD
 if ("VPD_F" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=VPD_F)) +
     geom_line() +
@@ -412,7 +406,7 @@ if ("EF" %in% names(ddf)) {
 if ("TA_F" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=TA_F)) +
     geom_line() +
-    labs(x = "Time", y = "temp") 
+    labs(x = "Time", y = "temp")
   ggsave("T_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -420,7 +414,7 @@ if ("TA_F" %in% names(ddf)) {
 if ("WS_F" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=WS_F)) +
     geom_line() +
-    labs(x = "Time", y = "Wind Speed") 
+    labs(x = "Time", y = "Wind Speed")
     ggsave("WS_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -428,7 +422,7 @@ if ("WS_F" %in% names(ddf)) {
 if ("USTAR" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=USTAR)) +
     geom_line() +
-    labs(x = "Time", y = "Friction Velocity") 
+    labs(x = "Time", y = "Friction Velocity")
     ggsave("ustar_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -436,7 +430,7 @@ if ("USTAR" %in% names(ddf)) {
 if ("TS_F_MDS_1" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=TS_F_MDS_1)) +
     geom_line() +
-    labs(x = "Time", y = "Soil Temperature") 
+    labs(x = "Time", y = "Soil Temperature")
     ggsave("soilT_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -444,7 +438,7 @@ if ("TS_F_MDS_1" %in% names(ddf)) {
 if ("P_F" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=P_F)) +
     geom_line() +
-    labs(x = "Time", y = "Precipitation") 
+    labs(x = "Time", y = "Precipitation")
     ggsave("precip_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -452,7 +446,7 @@ if ("P_F" %in% names(ddf)) {
 if ("GPP_NT_VUT_REF" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=GPP_NT_VUT_REF)) +
     geom_line() +
-    labs(x = "Time", y = "GPP") 
+    labs(x = "Time", y = "GPP")
     ggsave("GPP_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -460,7 +454,7 @@ if ("GPP_NT_VUT_REF" %in% names(ddf)) {
 if ("deficit" %in% names(ddf_CWD$df)) {
   ggplot(data = ddf_CWD$df, aes(x=date, y=deficit)) +
     geom_line() +
-    labs(x = "Time", y = "CWD") 
+    labs(x = "Time", y = "CWD")
     ggsave("CWD_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -468,7 +462,7 @@ if ("deficit" %in% names(ddf_CWD$df)) {
 if ("SW_IN_POT" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=SW_IN_POT)) +
     geom_line() +
-    labs(x = "Time", y = "SW_IN_POT") 
+    labs(x = "Time", y = "SW_IN_POT")
     ggsave("SW_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
@@ -476,35 +470,35 @@ if ("SW_IN_POT" %in% names(ddf)) {
 if ("wcont_s11" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=wcont_s11)) +
     geom_line() +
-    labs(x = "Time", y = "wcont_s11") 
+    labs(x = "Time", y = "wcont_s11")
     ggsave("wcont_s11_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
 if ("wcont_s12" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=wcont_s12)) +
     geom_line() +
-    labs(x = "Time", y = "wcont_s12") 
+    labs(x = "Time", y = "wcont_s12")
     ggsave("wcont_s12_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
 if ("wcont_s13" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=wcont_s13)) +
     geom_line() +
-    labs(x = "Time", y = "wcont_s13") 
+    labs(x = "Time", y = "wcont_s13")
     ggsave("wcont_s13_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
 if ("soilm_from_et" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=soilm_from_et)) +
     geom_line() +
-    labs(x = "Time", y = "soilm_from_et") 
+    labs(x = "Time", y = "soilm_from_et")
     ggsave("soilm_from_et_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
 if ("soilm_from_et_orthbucket" %in% names(ddf)) {
   ggplot(data = ddf, aes(x=date, y=soilm_from_et_orthbucket)) +
     geom_line() +
-    labs(x = "Time", y = "soilm_from_et_orthbucket") 
+    labs(x = "Time", y = "soilm_from_et_orthbucket")
     ggsave("soilm_from_et_orthbucket_timeseries.png", path = TS_path, width = 5, height = 3)
 }
 
