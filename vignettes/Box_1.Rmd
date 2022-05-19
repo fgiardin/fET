@@ -1,0 +1,235 @@
+---
+title: "ET decay model"
+author: "Francesco Giardina and Beni Stocker"
+date: "5/19/2022"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(ggpubr)
+```
+
+## Linear model
+
+Assume a 60-days dry down event with the following setup:
+
+- The initial water available to plants across the rooting zone, $S_0$ is 100 mm.
+- ET (termed $T$, since it's only transpiration here) is a linear function of the remaining water stored $S_t$ and is independent of VPD.
+$$
+T(t) = \alpha S(t)/S_0
+$$
+- The change in plant-available water storage is $\Delta S=T$.
+
+This leads to an exponential decay of both $S$ and $D$ with time. We can set $\alpha = 0.01$ d $^{-1}$.
+```{r}
+s0 <- 100
+alpha <- 1
+ntsteps <- 500
+s_t <- rep(NA, ntsteps)
+t_t <- rep(NA, ntsteps)
+s_t[1] <- s0 
+
+for (idx in 1:(ntsteps-1)){
+  t_t[idx] <- alpha * s_t[idx] / s0
+  s_t[idx + 1] <- s_t[idx] - t_t[idx]
+}
+
+df_lin <- tibble( time = 1:ntsteps, soilm = s_t, transp = t_t ) 
+
+df_lin %>% 
+  ggplot(aes(time, soilm)) + 
+  geom_line(size = 1)
+
+df_lin %>% 
+  tidyr::drop_na() %>% 
+  ggplot(aes(time, transp)) + 
+  geom_line(size = 1)
+
+df_lin %>% 
+  tidyr::drop_na() %>% 
+  ggplot(aes(100-soilm, transp)) + 
+  labs(x=expression(integral(ET))) +
+  geom_line(size = 1)
+```
+
+## Effect of rooting zone water storage capacity
+
+Let's compare the same relationship as above but with two different $S_0$.
+```{r}
+s0 <- 50
+s_t[1] <- s0 
+for (idx in 1:(ntsteps-1)){
+  t_t[idx] <- alpha * s_t[idx] / s0
+  s_t[idx + 1] <- s_t[idx] - t_t[idx]
+}
+
+
+df_lin_deep <- df_lin %>% 
+  mutate(fet = transp / transp[1]) %>% 
+  mutate(rzwsc = "Deep", cwd = cumsum(transp))
+
+df_lin_shallow <- tibble(time = 1:ntsteps, soilm= s_t, transp = t_t) %>% 
+  mutate(fet = transp / transp[1]) %>% 
+  mutate(rzwsc = "Shallow", cwd = cumsum(transp))
+
+df_lin2 <- bind_rows(df_lin_deep, df_lin_shallow)
+
+a <- df_lin2 %>% 
+  ggplot(aes(x = time, y = soilm, color = rzwsc)) + 
+  geom_line(size = 1) +
+  theme_classic() +
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14),  
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14)) +
+  scale_color_manual( 
+    values = c("#D81B60", "#BBCC33") # red, green 
+  ) +
+  labs(x = "Time (d)", y = expression(paste("Soil moisture (mm)"))) +
+  guides(color=guide_legend(title="Root zone storage capacity"))
+a
+
+b <- df_lin2 %>% 
+  tidyr::drop_na() %>% 
+  ggplot(aes(time, transp, color = rzwsc)) + 
+  geom_line(size = 1) +
+  theme_classic() +
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14),  
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14)) +
+  scale_color_manual( 
+    values = c("#D81B60", "#BBCC33") # red, green 
+  ) +
+  labs(x = "Time (d)", y = expression(paste("ET (mm ", d^-1, ")"))) +
+  guides(color=guide_legend(title="Root zone storage capacity"))
+b
+
+df_lin2 %>%
+  tidyr::drop_na() %>% 
+  ggplot(aes(x = cwd, y = transp, color = rzwsc)) +
+  labs(x=expression(integral(ET))) +
+  geom_line(size = 1)
+
+c <- df_lin2 %>%
+  tidyr::drop_na() %>% 
+  ggplot(aes(x = cwd, y = fet, color = rzwsc)) +
+  labs(x=expression(integral(ET))) +
+  geom_line(size = 1) + 
+  theme_classic() +
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14),  
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14)) +
+  scale_color_manual( 
+    values = c("#D81B60", "#BBCC33") # red, green 
+  ) +
+  labs(x = "Cumulative water deficit (mm)", y = "fET (-)") +
+  guides(color=guide_legend(title="Root zone storage capacity"))
+c
+```
+
+
+The question is: How does VPD affect the ET decline?
+
+## Effect of maximum conductance
+
+Let's compare the same relationship as above but with two plant strategies.
+```{r}
+s0 <- 100
+s_t[1] <- s0 
+for (idx in 1:(ntsteps-1)){
+  t_t[idx] <- 1.5 * alpha * s_t[idx] / s0
+  s_t[idx + 1] <- s_t[idx] - t_t[idx]
+}
+
+
+df_lin_conservative <- df_lin %>% 
+  mutate(fet = transp / transp[1]) %>% 
+  mutate(Strategy = "Conservative", cwd = cumsum(transp))
+
+df_lin_exploit <- tibble(time = 1:ntsteps, soilm = s_t, transp = t_t) %>% 
+  mutate(fet = transp / transp[1]) %>% 
+  mutate(Strategy = "Exploitative", cwd = cumsum(transp))
+
+df_lin3 <- bind_rows(df_lin_conservative, df_lin_exploit)
+
+d<- df_lin3 %>% 
+  ggplot(aes(x = time, y = soilm, color = Strategy)) + 
+  geom_line(size = 1) +
+  theme_classic() +
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14),  
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14)) +
+  scale_color_manual( 
+    values = c("#0072B2", "#f6ae09") # blue-orange 
+  ) +
+  labs(x = "Time (d)", y = expression(paste("Soil moisture (mm)")))
+d
+
+e <- df_lin3 %>% 
+  tidyr::drop_na() %>% 
+  ggplot(aes(time, transp, color = Strategy)) + 
+  geom_line(size = 1) +
+  theme_classic() +
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14),  
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14)) +
+  scale_color_manual( 
+    values = c("#0072B2", "#f6ae09") # blue-orange 
+  ) +
+  labs(x = "Time (d)", y = expression(paste("ET (mm ", d^-1, ")")))
+e
+
+df_lin3 %>% 
+  tidyr::drop_na() %>% 
+  ggplot(aes(time, fet, color = Strategy)) + 
+  geom_line(size = 1)
+
+f <- df_lin3 %>%
+  tidyr::drop_na() %>% 
+  ggplot(aes(x = cwd, y = fet, color = Strategy)) +
+  labs(x=expression(integral(ET))) +
+  geom_line(aes(size = Strategy, linetype = Strategy)) +
+  scale_size_manual(values = c(1.5, 1)) +
+  scale_linetype_manual(values = c("solid", "dashed")) +
+  theme_classic() +
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14),  
+        legend.text=element_text(size=14),
+        legend.title=element_text(size=14)) +
+  scale_color_manual( 
+    values = c("#0072B2", "#f6ae09") # blue-orange 
+  ) + 
+  labs(x = "Cumulative water deficit (mm)", y = "fET (-)")
+f
+
+### COMBINE FIGURES
+ggarrange(a, b, c,
+          labels = c("a", "b", "c"),
+          ncol = 3, nrow = 1,
+          common.legend = TRUE, # one common legend
+          legend="bottom" 
+          ) 
+# save plot
+ggsave("Box_1_s0.png", path = "./", width = 12, height = 4)
+
+ggarrange(d, e, f,
+          labels = c("d", "e", "f"),
+          ncol = 3, nrow = 1,
+          common.legend = TRUE, # one common legend
+          legend="bottom" 
+          ) 
+ggsave("Box_1_conductance.png", path = "./", width = 12, height = 4)
+
+```
