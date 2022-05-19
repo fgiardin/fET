@@ -1,10 +1,18 @@
 This folder contains raw data and the scripts to download and pre-process the data.
 
+## FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv: table containing FLUXNET2015 data for site AU-Wom (provided here as an example to run the data screening script locally)
+
+## ai_fluxnet2015.Rdata: dataframe containing aridity index
+
+## extract_HWSDR.R
+Script to extract soil data from the HWSDR dataset. 
+
 ## extract_GTI.R
 Script to extract global topographic index (GTI) values at fluxnet locations. 
 
 ## extract_gldas.R
 Script to extract GLDAS variables and put them in the right format. Designed to be run site-by-site on a cluster.
+
 
 ### Instructions to download GLDAS data on ETHZ's HPC cluster (Euler):
 

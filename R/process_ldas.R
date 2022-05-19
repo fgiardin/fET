@@ -1,50 +1,70 @@
-# process data
+# extract data from LDAS data products
+
+# PATH is the directory where all the NetCDF files from one product (e.g. NLDAS or GLDAS) are stored
+# LAYER is the layer of the product you want to extract
+# for GLDAS: Rainf_tavg, Evap_tavg, PotEvap_tavg, Rainf_f_tavg
+# for NLDAS: PEVAP, APCP
+
+# the function automatically tries to extract the variable (specified as 'layer')
+# at the specified fluxnet2015 location (it returns NA if the location is outside of
+# the NetCDF) and create a dataframe in the right format
+
+# !!! for LDAS still need to transform to one value per day (it's hourly total data)
+# GLDAS NOAH: 3 hours resolution
 
 library(tidyverse)
 library(raster)
 library(ncdf4)
+library(ingestr)
 
 # list files
-process_ldas <- function(path, layer){
+process_ldas <- function(path, layer, site_ID){
 
-  # needs to be replaced with a function call
-  # from ingestr
-  load("siteinfo_fluxnet2015.RData")
+  # filter for site specified as site_ID
+  siteinfo_fluxnet2015 <- ingestr::siteinfo_fluxnet2015 %>% # extract list of sites with info from ingestr
+    dplyr::filter(sitename == site_ID)
 
   files <- list.files(path,"*.nc4", full.names = TRUE)
 
-  date_field <- do.call("rbind", str_split(files, "\\."))[,2]
-  date_field <- gsub("A","",date_field)
+  output <- lapply(files, function(file){
+    print(file) # print site_ID to keep track of it
 
-  dates <- as.Date(
-    date_field,
-    "%Y%m%d"
-  )
+    # extract date from file name of each GLDAS map (a bit tricky!)
+    date_field <- do.call("rbind", str_split(file, "\\."))[,c(2,3)] # do.call divides
+    # the filename in two pieces divided by points, and only takes piece number
+    # 2 (where the date is, given the file name)
+    date_field <- paste(date_field[1],date_field[2]) # merge two separate columns of matrix into one
+    date_field <- gsub(" ","",date_field) # remove space created with previous step
+    date_field <- gsub("A","",date_field) # replace the "A"
+    # sostituisce la "A" davanti alla data con un vuoto
 
-  # you will need to specify which layer of the NLDAS product
-  # you want
-  if(missing(layer)){
-    s <- stack(files)
-  } else {
-    s <- stack(files, varname = layer)
-  }
+    dates <- lubridate::ymd_hm(date_field) # convert to date taking into account hours and minutes
 
-  df <- siteinfo_fluxnet2015 %>%
-    rowwise() %>%
-    do({
+    # extract variable specified in 'layer'
+    s <- stack(file, varname = layer)
 
-      values <- raster::extract(s, matrix(c(.$lon, .$lat),1,2))[1,]
+    df <- siteinfo_fluxnet2015 %>% # list of fluxnet sitenames with lon and lat
+      rowwise() %>%
+      do({
 
-      data.frame(
-        sitename = .$sitename,
-        lon = .$lon,
-        lat = .$lat,
-        date = dates,
-        values = values
-      )
-    })
+        values <- raster::extract(s, matrix(c(.$lon, .$lat),1,2))[1,]
 
-  return(df)
+        data.frame(
+          sitename = .$sitename,
+          lon = .$lon,
+          lat = .$lat,
+          date = dates,
+          values = values
+        )
+      })
+
+    return(df)
+
+  })
+
+  # bind together extracted output from each map
+  output <- do.call("rbind", output)
+
+  return(output)
 }
-
 
