@@ -6,20 +6,20 @@ library(grid)
 library(bigleaf)
 
 ### DK-Sor
-load("./output/DK-Sor/data_frames/out_DK-Sor.RData") # load output
-load("./output/DK-Sor/data_frames/ddf_DK-Sor.RData") # load input
+load("data/output/DK-Sor/data_frames/out_DK-Sor.RData") # load output of ML model
+load("data/output/DK-Sor/data_frames/ddf_DK-Sor.RData") # load input of ML model
 
 # merge output and input dataframes
-plottin <- out$df_all %>% 
-  left_join(ddf %>% dplyr::select(date, TA_F, NETRAD), by ="date") %>% 
-  mutate(NETRAD = LE.to.ET(NETRAD, TA_F)*24*60*60)  # convert NETRAD in same units of ET (kg/m2*d) 
+plottin <- out$df_all %>%
+  left_join(ddf %>% dplyr::select(date, TA_F, NETRAD), by ="date") %>%
+  mutate(NETRAD = LE.to.ET(NETRAD, TA_F)*24*60*60)  # convert NETRAD to mass units (same of ET -- kg/m2*d)
 
 # get coeff to scale netrad
 lm_model = lm(nn_pot ~ NETRAD + 0, plottin)
 coeff = lm_model[["coefficients"]][["NETRAD"]]
 
 # calculate scaled netrad
-plottin <- plottin %>% 
+plottin <- plottin %>%
   mutate(NETRAD_coeff = NETRAD*coeff)
 
 # rename df and create column for long format
@@ -28,20 +28,20 @@ site_1$site <- "DK-Sor"
 
 
 ### US-Ton
-load("./output/US-Ton/data_frames/out_US-Ton.RData") # load output
-load("./output/US-Ton/data_frames/ddf_US-Ton.RData") # load input
+load("data/output/US-Ton/data_frames/out_US-Ton.RData") # load output of ML model
+load("data/output/US-Ton/data_frames/ddf_US-Ton.RData") # load input of ML model
 
 # merge output and input dataframes
-plottin <- out$df_all %>% 
-  left_join(ddf %>% dplyr::select(date, TA_F, NETRAD), by ="date") %>% 
-  mutate(NETRAD = LE.to.ET(NETRAD, TA_F)*24*60*60)  # convert NETRAD in same units of ET (kg/m2*d) 
+plottin <- out$df_all %>%
+  left_join(ddf %>% dplyr::select(date, TA_F, NETRAD), by ="date") %>%
+  mutate(NETRAD = LE.to.ET(NETRAD, TA_F)*24*60*60)  # convert NETRAD in same units of ET (kg/m2*d)
 
 # get coeff to scale netrad
 lm_model = lm(nn_pot ~ NETRAD + 0, plottin)
 coeff = lm_model[["coefficients"]][["NETRAD"]]
 
 # calculate scaled netrad
-plottin <- plottin %>% 
+plottin <- plottin %>%
   mutate(NETRAD_coeff = NETRAD*coeff)
 
 # rename df and create column for long format
@@ -83,7 +83,7 @@ grob_a <- grobTree(textGrob("DK-Sor", x=0.01,  y=0.95, hjust=0,
                           gp=gpar(col="black", fontsize=14, fontface="bold")))
 
 # plot
-a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +  #%>% dplyr::filter(names != "netrad")
+a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
   geom_path(
     aes(
       date,
@@ -97,32 +97,31 @@ a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +  #%>% dplyr::filter
   labs(
     x = "Month",
     y = expression(paste("ET (mm ", d^-1, ")"))
-    #color = "Legend"
   ) +
   theme_classic() +
   theme(legend.title=element_blank()) +
-  scale_color_manual( 
+  scale_color_manual(  # set line colors
     values = c(nn_act = "#0072B2", # blue
                nn_pot = "#BBCC33", # green
                obs = "#D81B60", # red
-               netrad = "#333333"), 
-    labels = c(obs = expression(paste(ET[obs])),
+               netrad = "#333333"),
+    labels = c(obs = expression(paste(ET[obs])), # set labels for legend
                nn_act = expression(paste(ET[NN])),
                nn_pot = expression(paste(PET[NN])),
                netrad = "Net Radiation"
                )
   ) +
-  scale_linetype_manual(
+  scale_linetype_manual(  # set line types
     values = c(obs = "solid",
-               nn_act = "solid", 
-               nn_pot = "solid", 
+               nn_act = "solid",
+               nn_pot = "solid",
                netrad = "dashed"
               ),
     labels = waiver()
   ) +
-  scale_x_date(date_breaks="1 month", date_labels = "%b") +
+  scale_x_date(date_breaks="1 month", date_labels = "%b") + # set correct x axis
   annotation_custom(grob_a) +
-  theme(
+  theme( # set legend position and orientation, as well as text size
     legend.position = "top",
     legend.direction = "horizontal",
     legend.justification = "left",
@@ -130,8 +129,7 @@ a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +  #%>% dplyr::filter
     axis.title=element_text(size = 14),
     legend.text=element_text(size = 12)
   ) +
-  ylim(0,4.3)
-#+ facet_grid(site~.) 
+  ylim(0,4.3) # set limits of y axis
 plot(a)
 
 grob_b <- grobTree(textGrob("US-Ton", x=0.01,  y=0.95, hjust=0,
@@ -150,15 +148,14 @@ b <- ggplot(data = df %>% dplyr::filter(site == "US-Ton")) +
   labs(
     x = "Month",
     y = expression(paste("ET (mm ", d^-1, ")"))
-    #color = "Legend"
   ) +
   theme_classic() +
   theme(legend.title=element_blank()) +
-  scale_color_manual( 
+  scale_color_manual(
     values = c(nn_act = "#0072B2", # blue
                nn_pot = "#BBCC33", # green
                obs = "#D81B60", # red
-               netrad = "#333333"), 
+               netrad = "#333333"),
     labels = c(obs = expression(paste(ET[obs])),
                nn_act = expression(paste(ET[NN])),
                nn_pot = expression(paste(PET[NN])),
@@ -167,13 +164,12 @@ b <- ggplot(data = df %>% dplyr::filter(site == "US-Ton")) +
   ) +
   scale_linetype_manual(
     values = c(obs = "solid",
-               nn_act = "solid", 
-               nn_pot = "solid", 
+               nn_act = "solid",
+               nn_pot = "solid",
                netrad = "dashed"
     ),
     labels = waiver()
   ) +
-  
   scale_x_date(date_breaks="1 month", date_labels = "%b") +
   annotation_custom(grob_b) +
   theme(
@@ -185,14 +181,16 @@ b <- ggplot(data = df %>% dplyr::filter(site == "US-Ton")) +
     legend.text=element_text(size = 12)
   ) +
   ylim(0,4.3)
-#+ facet_grid(site~.) 
 plot(b)
 
+# create combined figure with subpanels
 ggarrange(a, b,
           labels = c("a", "b"),
           ncol = 1, nrow = 2,
           common.legend = TRUE, # have just one common legend
           legend="top") # and place it in the bottom
+
+# save
 ggsave("ET_time_series.png", path = "./", width = 9, height = 8)
 
 
