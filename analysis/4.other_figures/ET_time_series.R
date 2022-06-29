@@ -62,7 +62,8 @@ df <- df_raw %>%
     nn_act = mean(nn_act, na.rm = TRUE),
     fvar = mean(fvar, na.rm = TRUE),
     obs = mean(obs, na.rm = TRUE),
-    netrad = mean(NETRAD_coeff, na.rm = TRUE)
+    netrad = mean(NETRAD_coeff, na.rm = TRUE),
+    moist = mean(moist, na.rm = TRUE)
   ) %>%
   mutate(
     date = as.Date(paste(2000, day_of_the_year), "%Y %j"),
@@ -76,14 +77,25 @@ df <- df_raw %>%
     cols = c(nn_pot, nn_act, obs, netrad),
     names_to = "names",
     values_to = "value"
-  )
+  ) %>%
+  ungroup() %>%
+  mutate(moist = as.logical(moist)) %>%
+  mutate(dry = !moist)
 
 # annotation
 grob_a <- grobTree(textGrob("DK-Sor", x=0.01,  y=0.95, hjust=0,
                           gp=gpar(col="black", fontsize=14, fontface="bold")))
 
+
 # plot
 a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
+  # geom_rect(aes(xmin = date, xmax = date,  # highlight dry periods
+  #               ymin = -Inf, ymax = Inf,
+  #               color = dry,
+  #               fill = "#CCCCCC"
+  #               ),
+  #           size = 0.7,
+  #           show.legend = FALSE) +
   geom_path(
     aes(
       date,
@@ -101,10 +113,10 @@ a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
   theme_classic() +
   theme(legend.title=element_blank()) +
   scale_color_manual(  # set line colors
-    values = c(nn_act = "#0072B2", # blue
-               nn_pot = "#BBCC33", # green
-               obs = "#D81B60", # red
-               netrad = "#333333"),
+    values = c(obs = "#333333",
+               nn_act = "#0072B2", # blue
+               nn_pot = "#D81B60", # red
+               netrad = "#BBCC33"), # green
     labels = c(obs = expression(paste(ET[obs])), # set labels for legend
                nn_act = expression(paste(ET[NN])),
                nn_pot = expression(paste(PET[NN])),
@@ -117,7 +129,7 @@ a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
                nn_pot = "solid",
                netrad = "dashed"
               ),
-    labels = waiver()
+    guide = "none"
   ) +
   scale_x_date(date_breaks="1 month", date_labels = "%b") + # set correct x axis
   annotation_custom(grob_a) +
