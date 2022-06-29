@@ -11,7 +11,7 @@ library(ggpointdensity)
 library(ggrepel)
 library(matlab)
 library(ggpubr)
-
+source("~/fET/R/LSD.heatscatter.R")
 
 # List of sites that "Successfully completed" script 2.run_ML_model_euler.R
 
@@ -361,14 +361,18 @@ a <- ggplot(clusters, aes(x=median_fvar, color=cluster, fill=cluster)) +
   ) +
   scale_y_reverse() +
   coord_flip() +
-  xlab("fET (-)") +
+  xlab(expression(paste(fET[150], " (-)"))) +
   ylab("Number of sites") +
   scale_x_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5))
 a
 
 # fVAR all sites
 b <- heatscatter(x=plot_allsites_fvar$deficit, y = plot_allsites_fvar$fvar, ggplot = TRUE)
-b <- b + labs(y = "fET (-)", x = "Cumulative water deficit (mm)") +
+b <- b +
+  labs(
+    y = "fET (-)",
+    x = "Cumulative water deficit (mm)"
+    ) +
   theme_classic() +
   theme(
     axis.text=element_text(size = 14),
@@ -376,7 +380,7 @@ b <- b + labs(y = "fET (-)", x = "Cumulative water deficit (mm)") +
     legend.text=element_text(size=14)
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300)) +
   geom_vline(xintercept = 125, linetype="dashed",
              color = "red") +
   geom_vline(xintercept = 175, linetype="dashed",
@@ -405,7 +409,7 @@ clusters <- plot_allsites_fvar %>%
 clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET", "high fET"))
 
 # directly load df
-load("data/output/00_Figures_final/dataframes/plot_allsites_fvar.RData")
+load("manuscript/Figures/dataframes/plot_allsites_fvar.RData")
 
 ### PANEL A: high fET
 # get site names inside bin
