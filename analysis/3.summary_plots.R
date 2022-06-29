@@ -437,8 +437,6 @@ a <- a +
   scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
 a
 
-
-
 ### PANEL C: medium fET
 # get site names inside bin
 sites_c <- clusters %>%
@@ -493,12 +491,12 @@ e <- e +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),    # center and bold title
+    plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310)) +
-  plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
-e
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
+print(e)
 
 
 

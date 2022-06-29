@@ -131,9 +131,8 @@ ddf_allsites <- do.call(
         dplyr::select(date, name_site, wcont_s11) %>%
         na.omit() %>%
         mutate(SM_maxnorm = wcont_s11/(max(wcont_s11, na.rm = TRUE))) %>% # calculate SM divided by maxSM of that site
-        mutate(SM_maxnorm_bin = cut(SM_maxnorm, 10))  # create bins
+        mutate(SM_maxnorm_bin = cut(SM_maxnorm, 10, labels = FALSE))  # create bins
       }
-
     }
   )
 )
