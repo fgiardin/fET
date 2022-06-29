@@ -89,13 +89,6 @@ grob_a <- grobTree(textGrob("DK-Sor", x=0.01,  y=0.95, hjust=0,
 
 # plot
 a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
-  # geom_rect(aes(xmin = date, xmax = date,  # highlight dry periods
-  #               ymin = -Inf, ymax = Inf,
-  #               color = dry,
-  #               fill = "#CCCCCC"
-  #               ),
-  #           size = 0.7,
-  #           show.legend = FALSE) +
   geom_path(
     aes(
       date,
@@ -163,12 +156,12 @@ b <- ggplot(data = df %>% dplyr::filter(site == "US-Ton")) +
   ) +
   theme_classic() +
   theme(legend.title=element_blank()) +
-  scale_color_manual(
-    values = c(nn_act = "#0072B2", # blue
-               nn_pot = "#BBCC33", # green
-               obs = "#D81B60", # red
-               netrad = "#333333"),
-    labels = c(obs = expression(paste(ET[obs])),
+  scale_color_manual(  # set line colors
+    values = c(obs = "#333333",
+               nn_act = "#0072B2", # blue
+               nn_pot = "#D81B60", # red
+               netrad = "#BBCC33"), # green
+    labels = c(obs = expression(paste(ET[obs])), # set labels for legend
                nn_act = expression(paste(ET[NN])),
                nn_pot = expression(paste(PET[NN])),
                netrad = "Net Radiation"
@@ -180,7 +173,7 @@ b <- ggplot(data = df %>% dplyr::filter(site == "US-Ton")) +
                nn_pot = "solid",
                netrad = "dashed"
     ),
-    labels = waiver()
+    guide = "none"
   ) +
   scale_x_date(date_breaks="1 month", date_labels = "%b") +
   annotation_custom(grob_b) +
