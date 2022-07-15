@@ -10,7 +10,7 @@ To reproduce the analysis, run the following scripts in order. Scripts 1 and 2 n
 
 * **commands.txt**: Contains the list of jobs to be submitted to the cluster for the script "2.run_ML_model_euler.R" (see "How_to_run_scripts_on_Euler.md" for instructions).
 
-### 4.other_figures
+### `4.other_figures`
 Folder that contains the scripts to generate all other figures. 
 
 * **ET_time_series.R**: prints "Seasonality of predicted and observed ET for sample sites" (current Fig. 2)

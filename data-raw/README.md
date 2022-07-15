@@ -1,21 +1,21 @@
 This folder contains raw data and the scripts to download and pre-process the data.
 
+* `GLDAS`: folder that contains some GLDAS data provided as example 
+
 * **FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv**: table containing FLUXNET2015 data for site AU-Wom (provided here as an example to run the data screening script locally)
 
 * **ai_fluxnet2015.Rdata**: dataframe containing aridity index
 
-* **extract_HWSD.R**: Script to extract soil data from the HWSDR dataset. 
-
 * **extract_GTI.R.ç**: Script to extract global topographic index (GTI) values at fluxnet locations. 
 
-* **extract_gldas.R**: Script to extract GLDAS variables and put them in the right format. Designed to be run site-by-site on a cluster (see intstructions below).
+* **extract_HWSDR.R**: Script to extract soil data from the HWSDR dataset. 
 
-* **GLDAS**: folder that contains some GLDAS data provided as example 
+* **extract_gldas.R**: Script to extract GLDAS variables and put them in the right format. Designed to be run site-by-site on a cluster (see intstructions below).
 
 
 ### Instructions to download and extract GLDAS data at FLUXNET sites using ETHZ's HPC cluster (Euler):
 
-1. With your terminal, connect to the cluster and navigate to the folder where you would like to download the data. Then use wget: 
+1. On your terminal, connect to the cluster and navigate to the folder where you would like to download the data. Then use wget: 
 
 ```
 wget --load-cookies ~/.urs_cookies --save-cookies ~/.urs_cookies --auth-no-challenge=on --keep-session-cookies --content-disposition -i ~/data/LDAS/subset4.txt
