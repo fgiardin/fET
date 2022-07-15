@@ -1,10 +1,14 @@
 To reproduce the analysis, run the following scripts in order. Scripts 1 and 2 need to be run on a HPC cluster (we used Euler from ETHZ Zürich).
 
+* **How_to_run_scripts_on_Euler.md**: Instructions to scripts on Euler.
+
 * **1.data_screening_euler.R**: Prepares fluxnet2015 raw data in the right format for the deep learning model.
 
 * **2.run_ML_model_euler.R**: Runs the deep learning model for every site and saves model outputs.
 
-* **3.summary_plots_euler.R**: Generates results on the performance of the model (Fig. 1). It divides the results in groups and prints the grouping statistics (Fig. 3). It also prints the fET vs CWD multi-panel figure (Fig. 4). 
+* **3.summary_plots.R**: Generates results on the performance of the model (Fig. 1). It divides the results in groups and prints the grouping statistics (Fig. 3). It also prints the fET vs CWD multi-panel figure (Fig. 4).
+
+* **'commands.txt'**: Contains the list of jobs to be submitted to the cluster for the script "2.run_ML_model_euler.R" (see "How_to_run_scripts_on_Euler.md" for instructions).
 
 ### 4.other_figures
 Folder that contains the scripts to generate all other figures. 
