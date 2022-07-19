@@ -316,7 +316,7 @@ grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
 
 # plot
 v <- ggplot(table1) +
-  geom_point(aes(x = ai, y = min_fvar, size = T_CLAY)) +
+  geom_point(aes(x = ai, y = median_fvar, size = T_CLAY)) +
   theme_classic() +
   xlab("Aridity index") +
   ylab("Median fET") +
@@ -344,9 +344,9 @@ plot(v)
 silt_groups <- quantile(table1$T_SILT, c(.33, .67), na.rm = TRUE)
 
 # regression
-model_1 = lm(min_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT < silt_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
-model_2 = lm(min_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[1]) %>% dplyr::filter(T_SILT < silt_groups[2]))
-model_3 = lm(min_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[2]))
+model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT < silt_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
+model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[1]) %>% dplyr::filter(T_SILT < silt_groups[2]))
+model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[2]))
 
 title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
 title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
@@ -366,7 +366,7 @@ grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
 
 # plot
 w <- ggplot(table1) +
-  geom_point(aes(x = ai, y = min_fvar, size = T_SILT)) +
+  geom_point(aes(x = ai, y = median_fvar, size = T_SILT)) +
   theme_classic() +
   xlab("Aridity index") +
   ylab("Median fET") +
@@ -392,9 +392,9 @@ plot(w)
 # split in equal-sized groups based on soil fraction
 sand_groups <- quantile(table1$T_SAND, c(.33, .67), na.rm = TRUE)
 
-model_1 = lm(min_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND < sand_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
-model_2 = lm(min_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[1]) %>% dplyr::filter(T_SAND < sand_groups[2]))
-model_3 = lm(min_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[2]))
+model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND < sand_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
+model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[1]) %>% dplyr::filter(T_SAND < sand_groups[2]))
+model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[2]))
 
 title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
 title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
@@ -415,7 +415,7 @@ grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
 
 # plot
 z <- ggplot(table1) +
-  geom_point(aes(x = ai, y = min_fvar, size = T_SAND)) +
+  geom_point(aes(x = ai, y = median_fvar, size = T_SAND)) +
   theme_classic() +
   xlab("Aridity index") +
   ylab("Median fET") +
@@ -444,7 +444,6 @@ ggarrange(v, z, w,
 )
 # save plot
 ggsave("fvar_vs_aridityindex_regressions.png", path = "./", width = 10, height = 8)
-
 
 
 

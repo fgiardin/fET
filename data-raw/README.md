@@ -10,9 +10,11 @@ This folder contains raw data and the scripts to download and pre-process the da
 
 * **extract_HWSD.R**: Script to extract soil data from the HWSDR dataset. 
 
+* **extract_WorldClim.R**: Script to extract MAT and MAP from WorldClim at FLUXNET2015 locations. 
+
 * **extract_gldas.R**: Script to extract GLDAS variables and put them in the right format. Designed to be run site-by-site on a cluster (see intstructions below).
 
-* **extract_WorldClim.R**: Script to extract MAT and MAP from WorldClim at FLUXNET2015 locations. 
+
 
 ### Instructions to download and extract GLDAS data at FLUXNET sites using ETHZ's HPC cluster (Euler):
 

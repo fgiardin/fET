@@ -122,7 +122,7 @@ a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
                nn_pot = "solid",
                netrad = "dashed"
               ),
-    guide = "none"
+    guide = "none" # hide legend for lines
   ) +
   scale_x_date(date_breaks="1 month", date_labels = "%b") + # set correct x axis
   annotation_custom(grob_a) +

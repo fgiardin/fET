@@ -138,7 +138,7 @@ scatter_plots <- scatter_plots_raw %>%
 ####*** SCATTERS ML MODEL ***####
 # Figure 1A
 file = sprintf("data/output/scatter_nn_act-obs_allsites_1A.png")
-scatterheat(scatter_plots, "obs", "nn_act", "All days", file)
+scatterheat(scatter_plots, "obs", "nn_act", "All days", file) # the function 'scatterheat' saves output in data/output/
 
 # Figure 1B
 file = sprintf("data/output/scatter_nn_pot-obs_moist_1B.png")
@@ -337,12 +337,23 @@ clusters$cluster <- gsub('1', 'medium fET', clusters$cluster)
 clusters$cluster <- gsub('2', 'high fET', clusters$cluster)
 clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET", "high fET"))
 
+# add clusters to df
+plot_allsites_fvar <- plot_allsites %>%
+  left_join(clusters, by = "name_site") %>%
+  mutate(cluster = replace(cluster, is.na(cluster), "high fET"))  # manually add spare sites to 'high ET' bin
+save(plot_allsites_fvar, file = "data/output/plot_allsites_fvar.RData")
+
+# overwrite 'clusters' with the sites added manually
+clusters <- plot_allsites_fvar %>%
+  dplyr::select(name_site, median_fvar, cluster) %>%
+  unique()
+clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET", "high fET"))
 
 ####*** CHARTS BINNING ***####
 
 #### Histogram
 # calculate bin width (Freedman-Diaconis rule)
-bw <- (2 * IQR(clusters$median_fvar)) / (length(clusters$median_fvar)^(1/3)) # Freedman-Diaconis rule not only considers the sample size
+bw <- (2 * IQR(clusters$median_fvar, na.rm = TRUE)) / (length(clusters$median_fvar)^(1/3)) # Freedman-Diaconis rule not only considers the sample size
                                                                             # but also the spread of the sample.
 
 # color by cluster
@@ -359,6 +370,7 @@ a <- ggplot(clusters, aes(x=median_fvar, color=cluster, fill=cluster)) +
     legend.position=c(.25,.9),
     legend.title=element_blank()
   ) +
+  #scale_y_continuous(breaks = seq(0, 12.5, 2.5), limits = c(0, 12.5)) +
   scale_y_reverse() +
   coord_flip() +
   xlab(expression(paste(fET[150], " (-)"))) +
@@ -396,21 +408,6 @@ ggsave("Fig_binning.png", path = "./", width = 8, height = 4)
 
 ####*** CHARTS fET vs CWD (DNN) ***####
 
-# add clusters to df
-plot_allsites_fvar <- plot_allsites %>%
-  left_join(clusters, by = "name_site") %>%
-  mutate(cluster = replace(cluster, is.na(cluster), "high fET"))  # manually add spare sites to 'high ET' bin
-save(plot_allsites_fvar, file = "data/output/plot_allsites_fvar.RData")
-
-# overwrite 'clusters' with the sites added manually
-clusters <- plot_allsites_fvar %>%
-  dplyr::select(name_site, median_fvar, cluster) %>%
-  unique()
-clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET", "high fET"))
-
-# directly load df
-load("manuscript/Figures/dataframes/plot_allsites_fvar.RData")
-
 ### PANEL A: high fET
 # get site names inside bin
 sites_a <- clusters %>%
@@ -419,7 +416,7 @@ sites_a <- as.character(sites_a$name_site)
 
 # filter
 plot_a <- plot_allsites_fvar %>%
-  dplyr::filter(cluster == "high fET")
+  dplyr::filter(name_site %in% sites_a)
 
 # plot
 a <- heatscatter(x=plot_a$deficit, y = plot_a$fvar, ggplot = TRUE)
@@ -438,7 +435,7 @@ a <- a +
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 a
 
 ### PANEL C: medium fET
@@ -468,9 +465,8 @@ c <- c +
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 c
-
 
 ### PANEL E: low fET
 # get site names inside bin
@@ -499,7 +495,7 @@ e <- e +
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 print(e)
 
 
@@ -629,11 +625,11 @@ b <- b +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310)) +
-  plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 b
 
 ### PANEL D: medium fET GLDAS
@@ -654,11 +650,11 @@ d <- d +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310)) +
-  plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 d
 
 ### PANEL F: low fET GLDAS
@@ -672,18 +668,18 @@ f <- f +
   labs(
     y = expression(paste("fET"["GLDAS"]*" (-)")),
     x = "Cumulative water deficit (mm)",
-    title = "Medium fET"
+    title = "Low fET"
   ) +
   theme_classic() +
   theme(
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310)) +
-  plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 f
 
 ####*** Compose final chart - deep learning and GLDAS ***####
@@ -732,7 +728,6 @@ a <- a +
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
   scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
-
 a
 
 ### Panel B: high EF
@@ -757,7 +752,7 @@ b <- b +
     plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 b
 
 ### Panel c: medium EF
@@ -782,7 +777,7 @@ c <- c +
     plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 c
 
 ### Panel d: low EF
@@ -807,7 +802,7 @@ d <- d +
     plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310))
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
 d
 
 
@@ -854,7 +849,6 @@ table1 <- table1 %>%
             ,
             by = c("name_site")
             )
-
 save(table1, file = "data/output/table1.RData")
 
 
