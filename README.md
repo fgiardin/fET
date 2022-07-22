@@ -1,7 +1,3 @@
-# The fET repo 
-
-This repo contains scripts and instructions to reproduce the analysis presented in "Plant access to belowground moisture allows sustained evapotranspiration during drought" by *Giardina et al.*, submitted to the journal Global Change Biology (GCB) in July 2022. 
-
 # Instructions
 
 First things first, clone this repo to your local computer:
