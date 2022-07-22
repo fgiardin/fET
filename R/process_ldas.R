@@ -35,8 +35,7 @@ process_ldas <- function(path, layer, site_ID){
     # 2 (where the date is, given the file name)
     date_field <- paste(date_field[1],date_field[2]) # merge two separate columns of matrix into one
     date_field <- gsub(" ","",date_field) # remove space created with previous step
-    date_field <- gsub("A","",date_field) # replace the "A"
-    # sostituisce la "A" davanti alla data con un vuoto
+    date_field <- gsub("A","",date_field) # replace the "A" before the data with a blank space
 
     dates <- lubridate::ymd_hm(date_field) # convert to date taking into account hours and minutes
 

@@ -24,7 +24,7 @@ b
 
 # save figure
 ggsave("facet_highET.png",
-       path = "./output",
+       path = "./",
        width = 10,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
        height = 10,
 )
@@ -50,7 +50,7 @@ b
 
 # save figure
 ggsave("facet_mediumET.png",
-       path = "./output",
+       path = "./",
        width = 10,
        height = 12,
 )
@@ -75,7 +75,7 @@ b
 
 # save figure
 ggsave("facet_lowET.png",
-       path = "./output",
+       path = "./",
        width = 8,
        height = 8,
 )

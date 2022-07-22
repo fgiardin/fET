@@ -1,5 +1,9 @@
 # Script to exctract WorldClim data at FLUXNET2015 locations
 
+# packages
+library(ingestr)
+library(tidyverse)
+
 # load vector of final sites
 load("manuscript/Figures/dataframes/vec_sites.RData")
 

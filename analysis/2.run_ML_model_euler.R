@@ -378,8 +378,8 @@ dev.off()
 
 
 ##### DENSITY PLOT EF vs CWD #####
-#filter for noise (lit review: EF is usually between 0 and 1-1.5)
-# imp: filter only at this point (otherwise remove relevant data to train model)
+# remove noise (lit review: EF is usually between 0 and 1-1.5)
+# imp: filter only at this point (otherwise would remove relevant data to train model)
 ddf_plot_EF <- ddf_plot_biginstances %>% #only take big instances
   dplyr::filter(EF > 0) %>%
   dplyr::filter(EF < 1)

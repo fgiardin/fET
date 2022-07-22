@@ -1,8 +1,9 @@
 #!/usr/bin/env Rscript
 
-# The first 2 lines of code are to run it on Euler. You can run it locally by
-# manually defining the 'sitename' (use FLUXNET2015 nomenclature).
-# This script automatically create a directory for every site in data/output
+# The first two lines of code below are needed to run it on Euler. You can run it locally by
+# manually defining the 'sitename' and skipping those two lines (use FLUXNET2015 nomenclature).
+
+# This script automatically creates a directory for every site in data/output
 # where output from this script and 2.run_ML_model_euler.R are saved.
 
 ## evaluate arguments (they are then available as args[1], args[2], ...
@@ -115,11 +116,12 @@ save(ddf_CWD, file = CWD_name)
 
 # LOAD RAW DATA FROM FLUXNET AND PROCESS IT AS IN LI et al. 2018 ----------
 
-# the directory ~/data/FLUXNET-2015_Tier1/20191024/HH must contain all original
-# half-hourly fluxnet2015 .CSV files as available on https://fluxnet.org/data/fluxnet2015-dataset/
-# If running locally, you can try setting filename = "AU-Wom" and load the .csv located
-# here: /data-raw/FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv
-# in this case, directly read the commented local path
+# The directory ~/data/FLUXNET-2015_Tier1/20191024/HH must contain all original
+# half-hourly FLUXNET2015 .CSV files as available on https://fluxnet.org/data/fluxnet2015-dataset/
+
+# If running locally, you can try setting filename = "AU-Wom" and load the .csv provided
+# here as example: /data-raw/FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv
+# In this case, directly read the commented local path below (line 135)
 
 # extract list of files in directory
 file_list <- list.files(path="~/data/FLUXNET-2015_Tier1/20191024/HH") # path
@@ -246,7 +248,7 @@ hhdf <- hhdf %>%
   mutate(ET = ET*30*60) # convert to absolute mm in 30min (like P_F)
 
 # Note: using the final screened dataframe to calculate CWD would give erroneous results.
-# We are filtering times with rain, so IAV of P and ET won't be reliable for such calculations.
+# We are removing all rain events, so IAV of P and ET won't be reliable.
 
 # DEFINE RAIN FILTER
 # exclude 6 hours after rain event; threshold: 0mm

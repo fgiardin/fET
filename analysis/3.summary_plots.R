@@ -15,20 +15,22 @@ source("~/fET/R/LSD.heatscatter.R")
 
 # List of sites that "Successfully completed" script 2.run_ML_model_euler.R
 
-# sites removed manually:
-# AU-Tum and US-Me2 (maxCWD not consistent, too high); "AR-SLu" (fishy ET bias profile)
+# sites removed manually upfront:
+# AU-Tum and US-Me2 (maxCWD not consistent, too high);
+# BE-Lon and AR-SLu fishy ET bias profile, noisy fET vs CWD plot
 # US-ARc: spike of low values in the middle of fET vs CWD, not consistent
 # AU-ASM, AU-GWW: too few points in fET vs CWD biginstances
-# US-Whs: noisy fET vs CWD (could be added to lowET but max CWD is too small)
+# US-Whs, FI-Hyy: noisy fET vs CWD (also: could be added to lowET but max CWD is too small)
+
 
 site_list = c("AT-Neu", "AU-Cpr", "AU-Cum", "AU-DaP", "AU-DaS", "AU-Emr", "AU-Gin", "AU-How",
-              "AU-RDF", "AU-Rob", "AU-Stp", "AU-Wom", "AU-Ync", "BE-Bra", "BE-Lon", "BE-Vie", "BR-Sa3",
+              "AU-RDF", "AU-Rob", "AU-Stp", "AU-Wom", "AU-Ync", "BE-Bra", "BE-Vie", "BR-Sa3",
               "CH-Dav", "CZ-wet", "DE-Geb", "DE-Gri", "DE-Hai", "DE-Kli", "DE-Lkb", "DE-Obe", "DE-Seh",
-              "DE-SfN", "DE-Tha", "DK-Sor", "ES-LgS", "FI-Hyy", "FI-Sod", "FR-Gri", "FR-LBr", "FR-Pue",
+              "DE-SfN", "DE-Tha", "DK-Sor", "ES-LgS", "FI-Sod", "FR-Gri", "FR-LBr", "FR-Pue",
               "IT-BCi", "IT-CA2", "IT-CA3", "IT-Col", "IT-Cpz", "IT-Isp", "IT-Lav", "IT-MBo", "IT-Noe",
               "IT-PT1", "IT-Ren", "IT-Ro2", "IT-SR2", "IT-SRo", "IT-Tor", "NL-Loo", "RU-Fyo", "US-AR2",
               "US-ARb", "US-ARM", "US-Blo", "US-Cop", "US-GLE", "US-Los", "US-MMS", "US-Ne1", "US-Ne2",
-              "US-Ne3", "US-SRG", "US-SRM", "US-Syv", "US-Ton", "US-Var", "US-WCr", "US-Whs", "US-Wi0"
+              "US-Ne3", "US-SRG", "US-SRM", "US-Syv", "US-Ton", "US-Var", "US-WCr", "US-Wi0"
               )
 
 
@@ -97,11 +99,11 @@ summary_allsites <- summary_allsites_raw %>%
   ) %>%
   dplyr::filter(mean_PET_round >= mean_AET_round) # include also if they're equal (that is the case for most wet sites)
 
-save(summary_allsites, file = "data/output/summary_allsites.RData")
+save(summary_allsites, file = "./summary_allsites.RData")
 
 # extract final number of sites and save
 vec_sites = summary_allsites$name_of_site
-save(vec_sites, file = "data/output/vec_sites.RData")
+save(vec_sites, file = "./vec_sites.RData")
 
 
 ### SCATTER PLOTS ALL SITES POOLED TOGETHER ############################
@@ -137,18 +139,18 @@ scatter_plots <- scatter_plots_raw %>%
 
 ####*** SCATTERS ML MODEL ***####
 # Figure 1A
-file = sprintf("data/output/scatter_nn_act-obs_allsites_1A.png")
+file = sprintf("./scatter_nn_act-obs_allsites_1A.png")
 scatterheat(scatter_plots, "obs", "nn_act", "All days", file) # the function 'scatterheat' saves output in data/output/
 
 # Figure 1B
-file = sprintf("data/output/scatter_nn_pot-obs_moist_1B.png")
+file = sprintf("./scatter_nn_pot-obs_moist_1B.png")
 scatterheat(scatter_plots %>% dplyr::filter(moist), "obs", "nn_pot", "Moist days", file)
 
 # now in supplementary figures
-file = sprintf("data/output/scatter_nn_pot-obs_dry.png")
+file = sprintf("./scatter_nn_pot-obs_dry.png")
 scatterheat(scatter_plots %>% dplyr::filter(!moist), "obs", "nn_pot", "Dry days", file)
 
-file = sprintf("data/output/scatter_nn_act-pot_all.png")
+file = sprintf("./scatter_nn_act-pot_all.png")
 scatterheat(scatter_plots %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
 
 
@@ -189,7 +191,7 @@ scatter_linear = scatter_linear %>%
   mutate(NETRAD_mass_coeff = NETRAD_mass*coeff)
 
 # scatter linear model
-file = sprintf("data/output/scatter_nn_pot-obs_moist_linear_1D.png")
+file = sprintf("./scatter_nn_pot-obs_moist_linear_1D.png")
 scatterheat(scatter_linear %>% dplyr::filter(moist), "obs", "NETRAD_mass_coeff", "Moist days", file)
 
 
@@ -229,7 +231,7 @@ scatter_priestley = scatter_priestley %>%
   mutate(pet_splash_coeff = pet_splash*coeff)
 
 # scatter priestley-taylor
-file = sprintf("data/output/scatter_nn_pot-obs_moist_priestley_1C.png")
+file = sprintf("./scatter_nn_pot-obs_moist_priestley_1C.png")
 scatterheat(scatter_priestley %>% dplyr::filter(moist), "obs", "pet_splash_coeff", "Moist days", file)
 
 
@@ -294,7 +296,7 @@ plot_allsites_raw <- CWD_allsites %>%
   dplyr::filter(name_site %in% vec_sites) %>%
   na.omit()
 
-save(plot_allsites_raw, file = "data/output/plot_allsites_raw.RData")
+save(plot_allsites_raw, file = "./plot_allsites_raw.RData")
 
 # filter outliers
 plot_allsites <- plot_allsites_raw %>%
@@ -309,7 +311,7 @@ plot_allsites <- plot_allsites_raw %>%
   ungroup()
 
 ####*** Binning by median fET around CWD = 150 mm ***####
-detach(package:plyr) # remove conflict with plyr (dplyr:: in front of group_by won't be enough!)
+#detach(package:plyr) # remove conflict with plyr (dplyr:: in front of group_by won't be enough!)
 clusters <- plot_allsites_raw %>%
   dplyr::filter(fvar < 1.5) %>% # focus on 0-1.5 interval
   dplyr::filter(fvar > 0) %>%
@@ -332,16 +334,16 @@ cluster_data <- kmeans(clusters$median_fvar, 3, iter.max = 10, nstart = 25)
 clusters$cluster = factor(cluster_data$cluster)
 
 # change clusters name
-clusters$cluster <- gsub('3', 'low fET', clusters$cluster)
+clusters$cluster <- gsub('2', 'low fET', clusters$cluster)
 clusters$cluster <- gsub('1', 'medium fET', clusters$cluster)
-clusters$cluster <- gsub('2', 'high fET', clusters$cluster)
+clusters$cluster <- gsub('3', 'high fET', clusters$cluster)
 clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET", "high fET"))
 
 # add clusters to df
 plot_allsites_fvar <- plot_allsites %>%
   left_join(clusters, by = "name_site") %>%
   mutate(cluster = replace(cluster, is.na(cluster), "high fET"))  # manually add spare sites to 'high ET' bin
-save(plot_allsites_fvar, file = "data/output/plot_allsites_fvar.RData")
+save(plot_allsites_fvar, file = "./plot_allsites_fvar.RData")
 
 # overwrite 'clusters' with the sites added manually
 clusters <- plot_allsites_fvar %>%
@@ -584,7 +586,7 @@ plot_allsites_gldas <- plot_allsites_gldas %>%
   ungroup()
 
 # save
-save(plot_allsites_gldas, file = "data/output/plot_allsites_gldas.RData")
+save(plot_allsites_gldas, file = "./plot_allsites_gldas.RData")
 
 ### Plot all sites GLDAS
 z <- heatscatter(x=plot_allsites_gldas$deficit, y = plot_allsites_gldas$fvar_scaled, ggplot = TRUE)
@@ -829,7 +831,8 @@ table1 <- siteinfo_fluxnet %>%
   mutate(lon = round(lon, 2)) %>%
   mutate(lat = round(lat, 2))
 
-save(table1, file = "data/output/table1_raw.RData")
+# save table in this format (used by data-raw/extract_HWSD.R)
+save(table1, file = "./table1_raw.RData")
 
 # adjust table formatting for table 1 (group columns and remove unnecesessary ones)
 table1$Coordinates <- paste0(table1$lon, ", ", table1$lat)  # paste0 does not put spaces
@@ -839,7 +842,7 @@ table1 <- table1 %>%
   dplyr::relocate(Coordinates, .after = name_site) %>%
   dplyr::relocate(Years, .after = Coordinates)
 
-# add MAP/MAP
+# add MAP/MAP from fluxnet (several Australian sites are missing --> we used WorldClim)
 sitelist_fluxnet <- read.csv("~/data/FLUXNET-2015_Tier1/fluxnet2015_MAT-MAP.csv")
 
 table1 <- table1 %>%
@@ -849,6 +852,6 @@ table1 <- table1 %>%
             ,
             by = c("name_site")
             )
-save(table1, file = "data/output/table1.RData")
+save(table1, file = "./table1.RData")
 
 

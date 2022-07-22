@@ -4,8 +4,6 @@ This folder contains raw data and the scripts to download and pre-process the da
 
 * **FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv**: table containing FLUXNET2015 data for site AU-Wom (provided here as an example to run the data screening script locally)
 
-* **ai_fluxnet2015.Rdata**: dataframe containing aridity index
-
 * **extract_GTI.R.ç**: Script to extract global topographic index (GTI) values at FLUXNET2015 locations. 
 
 * **extract_HWSD.R**: Script to extract soil data from the HWSDR dataset. 
@@ -13,6 +11,16 @@ This folder contains raw data and the scripts to download and pre-process the da
 * **extract_WorldClim.R**: Script to extract MAT and MAP from WorldClim at FLUXNET2015 locations. 
 
 * **extract_gldas.R**: Script to extract GLDAS variables and put them in the right format. Designed to be run site-by-site on a cluster (see intstructions below).
+
+* **ai_fluxnet2015.Rdata**: dataframe containing aridity index values
+
+* **df_gti.RData**: dataframe containing extracted GTI values
+
+* **df_WorldClim.RData**: dataframe containing extracted MAT and MAP values
+
+* **table1_soil.RData**: dataframe containing extracted soil texture values
+
+
 
 
 

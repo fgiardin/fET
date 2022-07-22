@@ -1,15 +1,18 @@
 #### extract HWSD data (it takes some minutes to run) #######################
 
+# first run analysis/3.summary_plots.R to create table1_raw.RData and then run this script
+
 # load packages
 library(hwsdr) # Koen Hufkens's package to download HWSD database // #to see available data do: hwsd_meta_data
 devtools::load_all(".")
 library(tidyverse)
 
 # load table1 with list of sites (used for indexing loop below)
-load("manuscript/Figures/dataframes/table1_raw.RData")
+load("data/dataframes/table1_raw.RData")
 
 # initialize empty dataframe
 soil_variables <- setNames(data.frame(matrix(ncol = 7, nrow = 0)), c("AWC_CLASS","T_CLAY", "S_CLAY", "T_SAND", "S_SAND", "T_SILT", "S_SILT"))
+
 # it takes time to run!
 for (i in 1:nrow(table1)){
   print(i)

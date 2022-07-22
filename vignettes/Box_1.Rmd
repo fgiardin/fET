@@ -21,14 +21,14 @@ library(ggpubr)
 
 Assume a 60-days dry down event with the following setup:
 
-- The initial water available to plants across the rooting zone, $S_0$ is 100 mm.
-- ET (termed $T$, since it's only transpiration here) is a linear function of the remaining water stored $S_t$ and is independent of VPD.
-$$
-T(t) = \alpha S(t)/S_0
-$$
-- The change in plant-available water storage is $\Delta S=T$.
+-   The initial water available to plants across the rooting zone, $S_0$ is 100 mm.
+-   ET (termed $T$, since it's only transpiration here) is a linear function of the remaining water stored $S_t$ and is independent of VPD. $$
+    T(t) = \alpha S(t)/S_0
+    $$
+-   The change in plant-available water storage is $\Delta S=T$.
 
 This leads to an exponential decay of both $S$ and $D$ with time. We can set $\alpha = 0.01$ d $^{-1}$.
+
 ```{r}
 s0 <- 100
 alpha <- 1
@@ -63,6 +63,7 @@ df_lin %>%
 ## Effect of rooting zone water storage capacity
 
 Let's compare the same relationship as above but with two different $S_0$.
+
 ```{r}
 s0 <- 50
 s_t[1] <- s0 
@@ -137,12 +138,12 @@ c <- df_lin2 %>%
 c
 ```
 
-
 The question is: How does VPD affect the ET decline?
 
 ## Effect of maximum conductance
 
 Let's compare the same relationship as above but with two plant strategies.
+
 ```{r}
 s0 <- 100
 s_t[1] <- s0 

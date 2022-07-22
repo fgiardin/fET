@@ -20,7 +20,7 @@ nc_data <- nc_open('~/data/gti_marthews/ga2.nc')
 # load table with sites to extract site codes and lon/lat info
 load("manuscript/Figures/dataframes/table1_raw.RData")
 df_sites <- table1 %>%
-  dplyr::select(name_site, lon, lat)
+  dplyr::select(name_site, lon, lat, cluster)
 
 # load NetCDF dataframe with raster package
 rasta <- raster::raster("~/data/gti_marthews/ga2.nc")

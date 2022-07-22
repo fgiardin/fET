@@ -9,17 +9,24 @@ library(ingestr)
 library(grid)
 
 # load table with already-extracted soil texture data
-# produced by running 3.summary_plots.R to create
-# table1_raw.RData and then run extract_HWSDR.R
-load("manuscript/Figures/dataframes/table1_soil.RData")
+# produced by running analysis/3.summary_plots.R to create
+# table1_raw.RData and then run data-raw/extract_HWSD.R
+load("data-raw/table1_soil.RData")
+
+# load vector of final sites
+load("data/dataframes/vec_sites.RData")
+
+# only select sites that are in final analysis
+table1 <- table1 %>%
+  dplyr::filter(name_site %in% vec_sites)
 
 # extract median fvar per site, calculated in the central CWD bin (see methods)
-load("manuscript/Figures/dataframes/plot_allsites_fvar.RData")
+load("data/dataframes/plot_allsites_fvar.RData")
 median_fvar <- plot_allsites_fvar %>%
   dplyr::select(name_site, median_fvar) %>%
   unique()
 
-# append median fvar and rename table (so it's consistent with the rest of the code)
+# append median fvar
 table1 <- table1 %>%
   left_join(median_fvar, by = "name_site")
 
@@ -144,7 +151,7 @@ plot(b)
 
 ### PANEL C: aridity index ####################################
 
-# load aridity index dataframe (see Methods)
+# load aridity index values (see Methods)
 load("data-raw/ai_fluxnet2015.Rdata")
 df_ai <- df_ai %>%
   rename(name_site = mysitename)
@@ -183,7 +190,11 @@ library(raster) # package for raster manipulation
 library(rgdal) # package for geospatial analysis
 
 # load df with gti already extracted at site locations
-load("manuscript/Figures/dataframes/df_gti.RData")
+load("data-raw/df_gti.RData")
+
+# merge with table
+table1 <- table1 %>%
+  left_join(df_gti %>% dplyr::select(name_site, gti), by = "name_site")
 
 d <- ggplot(df_gti, aes(x= cluster, y = gti, fill = cluster)) +
   stat_boxplot(geom ='errorbar', width = 0.5) +
@@ -205,18 +216,16 @@ d <- ggplot(df_gti, aes(x= cluster, y = gti, fill = cluster)) +
     plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm")
   ) +
   scale_fill_manual(values = c("#e9c46a", "#f4a261", "#e76f51")) +
-  scale_y_continuous(breaks = seq(0, 10, 2))
+  scale_y_continuous(breaks = seq(0, 10, 2)) # change y axis label (but not limits)
 plot(d)
 
 ### PANEL E-F: MAP and MAT ####################################
 ## used worldclim data for MAP and MAT since most Australian sites don't have MAP/MAT in
 ## the fluxnet dataframe
 
-# load vector of final sites
-load("manuscript/Figures/dataframes/vec_sites.RData")
-
 # load worldclim dataframe and merge to our table
-load("manuscript/Figures/dataframes/df_WorldClim.RData")
+load("data-raw/df_WorldClim.RData")
+
 table1 <- table1 %>%
   left_join(df_worldclim_reformat, by = c("name_site"))
 
@@ -267,6 +276,26 @@ f <- ggplot(table1, aes(x = cluster, y = MAT_worldclim, fill = cluster)) +
   scale_fill_manual(values = c("#e9c46a", "#f4a261", "#e76f51")) +
   scale_y_continuous(breaks = seq(0, 30, 5))
 f
+
+# remove site duplicates
+table1 <- table1 %>%
+  unique()
+
+## SAVE FINAL TABLE1
+saveRDS(table1, "./table1_final.rds", compress = "xz")
+
+# create fET timeseries
+load("data/dataframes/plot_allsites_fvar.RData")
+
+fET_timeseries <- plot_allsites_fvar %>%
+  left_join(table1, by = c("name_site", "median_fvar", "cluster")) %>%
+  unique()
+
+## SAVE fET timeseries
+saveRDS(fET_timeseries, "./fET_timeseries.rds", compress = "xz")
+
+# save in CSV format as well
+write.csv(fET_timeseries,"./fET_timeseries.csv", row.names = FALSE)
 
 
 ### PRINT FIGURE 6 ###########
@@ -412,7 +441,6 @@ grob_b <- grobTree(textGrob(title_b, x=0.02,  y=0.89, hjust=0,
 grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
                             gp=gpar(col="#CE2B37", fontsize=14, fontface="bold")))  #red
 
-
 # plot
 z <- ggplot(table1) +
   geom_point(aes(x = ai, y = median_fvar, size = T_SAND)) +
@@ -444,6 +472,7 @@ ggarrange(v, z, w,
 )
 # save plot
 ggsave("fvar_vs_aridityindex_regressions.png", path = "./", width = 10, height = 8)
+
 
 
 
