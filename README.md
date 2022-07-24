@@ -1,4 +1,5 @@
 # Instructions
+[![DOI](https://zenodo.org/badge/491055054.svg)](https://zenodo.org/badge/latestdoi/491055054)
 
 First things first, clone this repo to your local computer:
 
@@ -15,6 +16,4 @@ Below is an overview of the content of the others directories. You can refer to 
 * `data`: contains processed data, ready to use for the analysis. It also contains the outputs of the deep neural networks (DNN) model.
 * `manuscript`: contains manuscript and figures.
 * `vignettes`: contains the vignette to produce Box 1. 
-
-
 
