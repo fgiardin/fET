@@ -21,7 +21,8 @@ scatterheat <- function(df, X, Y, title, path){
   # subtitle = sprintf("R2 = %.3f (%.3f), RMSE = %.3f, Slope = %.3f, N = %1.0f", summary(lm_model)$r.squared, r2$.estimate, rmse$.estimate, sd_slope, N)
 
   # calculate R2 in one way (checked two methods above and are consistent)
-  subtitle = sprintf("R2 = %.2f, RMSE = %.2f, N = %1.0f", r2$.estimate, rmse$.estimate, N)
+  #subtitle = sprintf("R2 = %.2f, RMSE = %.2f, N = %1.0f", r2$.estimate, rmse$.estimate, N)
+  subtitle = sprintf("R2 = %.2f, RMSE = %.2f", r2$.estimate, rmse$.estimate)
 
   # adjust axis names
   if(X == "nn_act"){
@@ -54,7 +55,7 @@ scatterheat <- function(df, X, Y, title, path){
 
   # density plot
   png(filename = path, width = 4, height = 4.2, units = 'in', res = 300)
-  par(mar=c(5 ,4.5,2,1)+.1) # The 'mar' argument of 'par' sets the width of the margins in the order: 'bottom', 'left', 'top', 'right'. The default is to set 'left' to 4
+  par(mar=c(5 ,4.5,2,1)+.1, font.main = 1, cex.lab = 1.1) # The 'mar' argument of 'par' sets the width of the margins in the order: 'bottom', 'left', 'top', 'right'. The default is to set 'left' to 4
   plot.new()
   plot.window(xlim = c(min(df$X, na.rm=TRUE),max(df$X, na.rm=TRUE)),
               ylim = c(min(df$Y, na.rm=TRUE),max(df$Y, na.rm=TRUE)))

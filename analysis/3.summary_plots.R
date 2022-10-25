@@ -147,11 +147,13 @@ file = sprintf("./scatter_nn_pot-obs_moist_1B.png")
 scatterheat(scatter_plots %>% dplyr::filter(moist), "obs", "nn_pot", "Moist days", file)
 
 # now in supplementary figures
-file = sprintf("./scatter_nn_pot-obs_dry.png")
+file = sprintf("./scatter_nn_act-pot_all_S1A.png")
+scatterheat(scatter_plots %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
+
+file = sprintf("./scatter_nn_pot-obs_dry_S1B.png")
 scatterheat(scatter_plots %>% dplyr::filter(!moist), "obs", "nn_pot", "Dry days", file)
 
-file = sprintf("./scatter_nn_act-pot_all.png")
-scatterheat(scatter_plots %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
+
 
 
 ####*** SCATTERS LINEAR MODEL ***####
@@ -343,6 +345,7 @@ clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET",
 plot_allsites_fvar <- plot_allsites %>%
   left_join(clusters, by = "name_site") %>%
   mutate(cluster = replace(cluster, is.na(cluster), "high fET"))  # manually add spare sites to 'high ET' bin
+# those are: US-Syv, US-Los, IT-Ren, IT-Lav, DE-Tha, DE-Obe, DE-Lkb, DE-Kli
 save(plot_allsites_fvar, file = "./plot_allsites_fvar.RData")
 
 # overwrite 'clusters' with the sites added manually
@@ -351,6 +354,7 @@ clusters <- plot_allsites_fvar %>%
   unique()
 clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET", "high fET"))
 
+
 ####*** CHARTS BINNING ***####
 
 #### Histogram
@@ -358,27 +362,37 @@ clusters$cluster <- factor(clusters$cluster, levels = c("low fET", "medium fET",
 bw <- (2 * IQR(clusters$median_fvar, na.rm = TRUE)) / (length(clusters$median_fvar)^(1/3)) # Freedman-Diaconis rule not only considers the sample size
                                                                             # but also the spread of the sample.
 
-# color by cluster
-mu <- plyr::ddply(clusters, "cluster", summarise, grp.mean=mean(median_fvar)) # calculate average weight of each group
-a <- ggplot(clusters, aes(x=median_fvar, color=cluster, fill=cluster)) +
+# change name of groups for plot
+clusters_plot <- clusters %>%
+  mutate(cluster = str_replace(cluster, "fET", "fET sites")) %>%
+  droplevels() # drop old levels
+clusters_plot$cluster <- factor(clusters_plot$cluster, levels = c("low fET sites", "medium fET sites", "high fET sites"))
+
+# calculate average weight of each group (average fET inside each group)
+mu <- plyr::ddply(clusters_plot, "cluster", summarise, grp.mean=mean(median_fvar, na.rm = TRUE))
+
+a <- ggplot(clusters_plot,
+            aes(x=median_fvar,
+                color=cluster,
+                fill=cluster)
+            ) +
   geom_histogram(alpha=0.5, position="identity", binwidth = bw) +
-  geom_vline(data=mu, aes(xintercept=grp.mean, color=cluster),
-             linetype="dashed") +
   theme_classic() +
   theme(
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=12),
-    legend.position=c(.25,.9),
+    legend.position=c(.75,.9),
     legend.title=element_blank()
   ) +
-  #scale_y_continuous(breaks = seq(0, 12.5, 2.5), limits = c(0, 12.5)) +
-  scale_y_reverse() +
+  #scale_y_reverse() + # flip around y axis
   coord_flip() +
-  xlab(expression(paste(fET[150], " (-)"))) +
+  xlab(expression(paste(fET[paste(CWD, "=", 150)], " (-)"))) + # nested expression() with two "paste()" inside, one for the entire subscript and the other for the units
   ylab("Number of sites") +
-  scale_x_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5))
-a
+  scale_x_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
+  geom_vline(data=mu, aes(xintercept=grp.mean, color=cluster),
+             linetype="dashed")
+plot(a)
 
 # fVAR all sites
 b <- heatscatter(x=plot_allsites_fvar$deficit, y = plot_allsites_fvar$fvar, ggplot = TRUE)
@@ -401,7 +415,7 @@ b <- b +
              color = "red")
 b
 
-ggarrange(a, b,
+ggarrange(b, a,
           labels = c("a", "b"),
           ncol = 2, nrow = 1
           )
@@ -433,7 +447,7 @@ a <- a +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
@@ -463,7 +477,7 @@ c <- c +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
@@ -493,7 +507,7 @@ e <- e +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),    # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16),    # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
@@ -601,7 +615,7 @@ z <- z +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
   scale_x_continuous(breaks = seq(0, 500, 100), limits = c(0, 500))
@@ -627,7 +641,7 @@ b <- b +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
@@ -652,7 +666,7 @@ d <- d +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
@@ -677,7 +691,7 @@ f <- f +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16), # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
@@ -726,7 +740,7 @@ a <- a +
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
   scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
@@ -751,7 +765,7 @@ b <- b +
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
   scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
@@ -776,7 +790,7 @@ c <- c +
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
   scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
@@ -801,7 +815,7 @@ d <- d +
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16) # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
   scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))

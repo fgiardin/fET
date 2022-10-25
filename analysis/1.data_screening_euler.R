@@ -303,7 +303,9 @@ ddf <- inner_join(hhdf %>%
                       mutate(date = lubridate::date(date)) %>%
                       dplyr::select(date, VPD_F) %>% # calculate daily max for VPD
                       group_by(date) %>%
-                      summarise(VPD_F = max(VPD_F, na.rm = TRUE)),  by = c('date')), by = c('date')) %>%
+                      summarise(VPD_F = max(VPD_F, na.rm = TRUE)),
+                  by = c('date')),
+      by = c('date')) %>%
   ungroup()
 
 # calculate EF (imp: after calculating daily LE and NETRAD daily means - otherwise noisy)
