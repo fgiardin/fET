@@ -20,7 +20,6 @@ library(bigleaf)
 library(data.table)
 
 
-
 # LOAD GAPFILLED DATASET FROM Stocker at al. 2018 -------------------------
 # This dataset was gapfilled with single-layer neural networks and it is
 # used here to calculate CWD only (see methods)

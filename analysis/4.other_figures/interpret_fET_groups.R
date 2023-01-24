@@ -120,7 +120,8 @@ table1 <- table1 %>%
                                      "WSA", "SAV", "OSH", "CSH",
                                      "GRA", "CRO", "WET"
                                      )
-  ))
+                          )
+         )
 
 # IGBP class
 b <- ggplot(table1, aes(x = cluster, fill = classid)) +
@@ -147,7 +148,6 @@ b <- ggplot(table1, aes(x = cluster, fill = classid)) +
   xlab("Cluster") +
   scale_y_continuous(breaks = 1:22)
 plot(b)
-
 
 ### PANEL C: aridity index ####################################
 
@@ -308,6 +308,7 @@ ggarrange(a, b, c, d, e, f,
 )
 # save plot
 ggsave("Figure_6.png", path = "./", width = 9, height = 12)
+
 
 ### FIGURE 7: minimum fET vs aridity index, size is soil type #################
 
