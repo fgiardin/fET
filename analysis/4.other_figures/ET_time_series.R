@@ -5,9 +5,10 @@ library(ggpubr)
 library(grid)
 library(bigleaf)
 
-### DK-Sor
-load("data/output/DK-Sor/data_frames/out_DK-Sor.RData") # load output of ML model
-load("data/output/DK-Sor/data_frames/ddf_DK-Sor.RData") # load input of ML model
+### Site 1
+site1_name = "AU-Stp"
+load(paste0("data/output/", site1_name, "/data_frames/out_", site1_name, ".RData")) # load output of ML model
+load(paste0("data/output/", site1_name, "/data_frames/ddf_", site1_name, ".RData")) # load input of ML model
 
 # merge output and input dataframes
 plottin <- out$df_all %>%
@@ -24,12 +25,14 @@ plottin <- plottin %>%
 
 # rename df and create column for long format
 site_1 <- plottin
-site_1$site <- "DK-Sor"
+site_1$site <- site1_name
 
 
-### US-Ton
-load("data/output/US-Ton/data_frames/out_US-Ton.RData") # load output of ML model
-load("data/output/US-Ton/data_frames/ddf_US-Ton.RData") # load input of ML model
+### Site 2
+site2_name = "AU-Cpr"
+load(paste0("data/output/", site2_name, "/data_frames/out_", site2_name, ".RData")) # load output of ML model
+load(paste0("data/output/", site2_name, "/data_frames/ddf_", site2_name, ".RData")) # load input of ML model
+
 
 # merge output and input dataframes
 plottin <- out$df_all %>%
@@ -46,7 +49,7 @@ plottin <- plottin %>%
 
 # rename df and create column for long format
 site_2 <- plottin
-site_2$site <- "US-Ton"
+site_2$site <- site2_name
 
 # combine both sites, with a site column
 df_raw <- bind_rows(site_1, site_2)
@@ -83,12 +86,12 @@ df <- df_raw %>%
   mutate(dry = !moist)
 
 # annotation
-grob_a <- grobTree(textGrob("DK-Sor", x=0.01,  y=0.95, hjust=0,
+grob_a <- grobTree(textGrob(site1_name, x=0.01,  y=0.95, hjust=0,
                           gp=gpar(col="black", fontsize=14, fontface="bold")))
 
 
 # plot
-a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
+a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
   geom_path(
     aes(
       date,
@@ -133,13 +136,13 @@ a <- ggplot(data = df %>% dplyr::filter(site == "DK-Sor")) +
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
     legend.text=element_text(size = 12)
-  ) +
-  ylim(0,4.3) # set limits of y axis
+  )
+  #ylim(0,4.3) # set limits of y axis
 plot(a)
 
-grob_b <- grobTree(textGrob("US-Ton", x=0.01,  y=0.95, hjust=0,
+grob_b <- grobTree(textGrob(site2_name, x=0.01,  y=0.95, hjust=0,
                           gp=gpar(col="black", fontsize=14, fontface="bold")))
-b <- ggplot(data = df %>% dplyr::filter(site == "US-Ton")) +
+b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
   geom_path(
     aes(
       date,
@@ -184,8 +187,8 @@ b <- ggplot(data = df %>% dplyr::filter(site == "US-Ton")) +
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
     legend.text=element_text(size = 12)
-  ) +
-  ylim(0,4.3)
+  )
+  # ylim(0,4.3)
 plot(b)
 
 # create combined figure with subpanels
