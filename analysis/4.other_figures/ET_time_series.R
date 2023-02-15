@@ -5,6 +5,11 @@ library(ggpubr)
 library(grid)
 library(bigleaf)
 
+# load dataframes
+scatter_plots_all <- readRDS("data/dataframes/scatter_plots_all.rds")
+scatter_plots_all_selected <- scatter_plots_all %>%
+  dplyr::select(date, name_site, pet_splash_coeff, NETRAD_mass_coeff)
+
 ### Site 1
 site1_name = "AU-Stp"
 load(paste0("data/output/", site1_name, "/data_frames/out_", site1_name, ".RData")) # load output of ML model
@@ -19,9 +24,13 @@ plottin <- out$df_all %>%
 lm_model = lm(nn_pot ~ NETRAD + 0, plottin)
 coeff = lm_model[["coefficients"]][["NETRAD"]]
 
-# calculate scaled netrad
+# calculate scaled netrad and add PET from SPLASH
 plottin <- plottin %>%
-  mutate(NETRAD_coeff = NETRAD*coeff)
+  mutate(NETRAD_coeff = NETRAD*coeff) %>%
+  left_join(
+    scatter_plots_all_selected %>% dplyr::filter(name_site == site1_name),
+    by = c("date")
+    )
 
 # rename df and create column for long format
 site_1 <- plottin
@@ -45,7 +54,11 @@ coeff = lm_model[["coefficients"]][["NETRAD"]]
 
 # calculate scaled netrad
 plottin <- plottin %>%
-  mutate(NETRAD_coeff = NETRAD*coeff)
+  mutate(NETRAD_coeff = NETRAD*coeff) %>%
+  left_join(
+    scatter_plots_all_selected %>% dplyr::filter(name_site == site2_name),
+    by = c("date")
+  )
 
 # rename df and create column for long format
 site_2 <- plottin
@@ -66,7 +79,8 @@ df <- df_raw %>%
     fvar = mean(fvar, na.rm = TRUE),
     obs = mean(obs, na.rm = TRUE),
     netrad = mean(NETRAD_coeff, na.rm = TRUE),
-    moist = mean(moist, na.rm = TRUE)
+    moist = mean(moist, na.rm = TRUE),
+    pet_SPLASH = mean(pet_splash_coeff, na.rm = TRUE)
   ) %>%
   mutate(
     date = as.Date(paste(2000, day_of_the_year), "%Y %j"),
@@ -77,7 +91,7 @@ df <- df_raw %>%
   # of the columns assigned to "names" and the
   # values to "value"
   pivot_longer(
-    cols = c(nn_pot, nn_act, obs, netrad),
+    cols = c(nn_pot, nn_act, obs, netrad, pet_SPLASH),
     names_to = "names",
     values_to = "value"
   ) %>%
@@ -110,21 +124,21 @@ a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
   theme(legend.title=element_blank()) +
   scale_color_manual(  # set line colors
     values = c(obs = "#333333",
-               nn_act = "#0072B2", # blue
+               pet_SPLASH = "#0072B2", # blue
                nn_pot = "#D81B60", # red
                netrad = "#BBCC33"), # green
     labels = c(obs = expression(paste(ET[obs])), # set labels for legend
-               nn_act = expression(paste(ET[NN])),
+               pet_SPLASH = expression(paste(PET[PT])),
                nn_pot = expression(paste(PET[NN])),
                netrad = "Net Radiation"
-               )
+    )
   ) +
   scale_linetype_manual(  # set line types
     values = c(obs = "solid",
-               nn_act = "solid",
+               pet_SPLASH = "solid",
                nn_pot = "solid",
                netrad = "dashed"
-              ),
+    ),
     guide = "none" # hide legend for lines
   ) +
   scale_x_date(date_breaks="1 month", date_labels = "%b") + # set correct x axis
@@ -137,11 +151,11 @@ a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
     axis.title=element_text(size = 14),
     legend.text=element_text(size = 12)
   )
-  #ylim(0,4.3) # set limits of y axis
+#ylim(0,4.3) # set limits of y axis
 plot(a)
 
 grob_b <- grobTree(textGrob(site2_name, x=0.01,  y=0.95, hjust=0,
-                          gp=gpar(col="black", fontsize=14, fontface="bold")))
+                            gp=gpar(col="black", fontsize=14, fontface="bold")))
 b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
   geom_path(
     aes(
@@ -161,18 +175,18 @@ b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
   theme(legend.title=element_blank()) +
   scale_color_manual(  # set line colors
     values = c(obs = "#333333",
-               nn_act = "#0072B2", # blue
+               pet_SPLASH = "#0072B2", # blue
                nn_pot = "#D81B60", # red
                netrad = "#BBCC33"), # green
     labels = c(obs = expression(paste(ET[obs])), # set labels for legend
-               nn_act = expression(paste(ET[NN])),
+               pet_SPLASH = expression(paste(PET[PT])),
                nn_pot = expression(paste(PET[NN])),
                netrad = "Net Radiation"
     )
   ) +
   scale_linetype_manual(
     values = c(obs = "solid",
-               nn_act = "solid",
+               pet_SPLASH = "solid",
                nn_pot = "solid",
                netrad = "dashed"
     ),
@@ -188,7 +202,7 @@ b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
     axis.title=element_text(size = 14),
     legend.text=element_text(size = 12)
   )
-  # ylim(0,4.3)
+# ylim(0,4.3)
 plot(b)
 
 # create combined figure with subpanels

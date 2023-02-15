@@ -140,7 +140,7 @@ scatter_plots <- scatter_plots_raw %>%
 ####*** SCATTERS ML MODEL ***####
 # Figure 1A
 file = sprintf("./scatter_nn_act-obs_allsites_1A.png")
-scatterheat(scatter_plots, "obs", "nn_act", "All days", file) # the function 'scatterheat' saves output in data/output/
+scatterheat(scatter_plots, "obs", "nn_act", "All days", file)
 
 # Figure 1B
 file = sprintf("./scatter_nn_pot-obs_moist_1B.png")
@@ -236,6 +236,12 @@ scatter_priestley = scatter_priestley %>%
 file = sprintf("./scatter_nn_pot-obs_moist_priestley_1C.png")
 scatterheat(scatter_priestley %>% dplyr::filter(moist), "obs", "pet_splash_coeff", "Moist days", file)
 
+# save scatter plot data for additional figures
+scatter_plots_all = scatter_plots %>%
+  left_join(scatter_priestley %>% dplyr::select(date, name_site, pet_splash, pet_splash_coeff), by = c("date", "name_site")) %>%
+  left_join(scatter_linear %>% dplyr::select(date, name_site, NETRAD_mass, NETRAD_mass_coeff), by = c("date", "name_site"))
+
+saveRDS(scatter_plots_all, "./scatter_plots_all.rds", compress = "xz")
 
 ### BINNING ###########################################################
 # GET EF for all sites (used to double check fET)
