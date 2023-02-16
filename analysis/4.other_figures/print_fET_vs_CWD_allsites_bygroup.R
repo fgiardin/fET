@@ -1,4 +1,3 @@
-
 # load packages
 library(LSD) # load basic functions of LSD and then overwrite with our function
 devtools::load_all(".")
@@ -9,31 +8,7 @@ library(patchwork)
 load("data/dataframes/plot_allsites_fvar.RData")
 source("~/fET/R/LSD.heatscatter.R")
 
-# HIGH ET
-df <- plot_allsites_fvar %>% dplyr::filter(cluster == "high fET")
-b <- heatscatter(x=df$deficit, y = df$fvar, ggplot = TRUE)
-b$data$name_site = df$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
-b <- b + labs(y = "fET (-)", x = "Cumulative water deficit (mm)") +
-  theme_classic() +
-  theme(
-    axis.text=element_text(size = 17),
-    axis.title=element_text(size = 19),
-    strip.text = element_text(size=17) # plot title of facet_wrap multiplot
-  ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
-  scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300)) +  #
-  facet_wrap(~name_site, ncol = 4)
-b
-
-# save figure
-ggsave("facet_highET.png",
-       path = "./",
-       width = 10,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
-       height = 10,
-)
-
-# HIGH ET -- New Method
-
+### HIGH ET ####
 # get a list of high ET sites and plot them individually
 df <- plot_allsites_fvar %>% dplyr::filter(cluster == "high fET")
 high_fET <- unique(df$name_site) # list of sites within fET group
@@ -52,7 +27,7 @@ for (i in 1:length(high_fET)){
     theme(
       axis.text=element_text(size = 17),
       axis.title=element_text(size = 19),
-      strip.text = element_text(size=17), # plot title of facet_wrap multiplot
+      strip.text = element_text(size=17), # plot title
       plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
     ) +
     scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
@@ -101,58 +76,163 @@ wrap_plots(results_highET, ncol = 4, nrow = 4) + plot_layout(guides = "collect")
 # save figure
 ggsave("facet_highET.png",
        path = "./",
-       width = 10,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
+       width = 12,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
        height = 10,
 )
 
 
 
-# MEDIUM ET
+### MEDIUM ET ####
+# get a list of medium ET sites and plot them individually
 df <- plot_allsites_fvar %>% dplyr::filter(cluster == "medium fET")
+medium_fET <- unique(df$name_site) # list of sites within fET group
+results_mediumET <- list() # initialize list to save plots
 
-b <- heatscatter(x=df$deficit, y = df$fvar, pch = "6", ggplot = TRUE)
-b$data$name_site = df$name_site
-b <- b + labs(y = "fET (-)", x = "Cumulative water deficit (mm)") +
-  theme_classic() +
-  theme(
-    axis.text=element_text(size = 17),
-    axis.title=element_text(size = 19),
-    strip.text = element_text(size=17) # plot title of facet_wrap multiplot
+for (i in 1:length(medium_fET)){
+  site <- medium_fET[i]
+
+  df <- plot_allsites_fvar %>% dplyr::filter(name_site == site)
+  a <- heatscatter(x=df$deficit, y = df$fvar, ggplot = TRUE)
+  a$data$name_site = df$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
+  a <- a + labs(y = "fET (-)",
+                x = "CWD (mm)",
+                title = site) +
+    theme_classic() +
+    theme(
+      axis.text=element_text(size = 17),
+      axis.title=element_text(size = 19),
+      strip.text = element_text(size=17), # plot title
+      plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
     ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
-  scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300)) +
-  facet_wrap(~name_site, ncol = 4)
-b
+    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
+    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
+
+  results_mediumET[[length(results_mediumET) + 1]] <- a # store plot in a list
+  print(i)
+}
+
+# functions to remove x and y axes when not needed
+remove_y <- theme(
+  axis.text.y = element_blank(),
+  axis.ticks.y = element_blank(),
+  axis.title.y = element_blank()
+)
+
+remove_x <- theme(
+  axis.text.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.x = element_blank()
+)
+
+remove_x2 <- theme(
+  axis.title.x = element_blank()
+)
+
+results_mediumET[[1]] <- results_mediumET[[1]] + remove_x
+results_mediumET[[2]] <- results_mediumET[[2]] + remove_x + remove_y
+results_mediumET[[3]] <- results_mediumET[[3]] + remove_x + remove_y
+results_mediumET[[4]] <- results_mediumET[[4]] + remove_x + remove_y
+
+results_mediumET[[5]] <- results_mediumET[[5]] + remove_x
+results_mediumET[[6]] <- results_mediumET[[6]] + remove_x + remove_y
+results_mediumET[[7]] <- results_mediumET[[7]] + remove_x + remove_y
+results_mediumET[[8]] <- results_mediumET[[8]] + remove_x + remove_y
+
+results_mediumET[[9]] <- results_mediumET[[9]] + remove_x
+results_mediumET[[10]] <- results_mediumET[[10]] + remove_x + remove_y
+results_mediumET[[11]] <- results_mediumET[[11]] + remove_x + remove_y
+results_mediumET[[12]] <- results_mediumET[[12]] + remove_x + remove_y
+
+results_mediumET[[13]] <- results_mediumET[[13]] + remove_x
+results_mediumET[[14]] <- results_mediumET[[14]] + remove_x + remove_y
+results_mediumET[[15]] <- results_mediumET[[15]] + remove_x + remove_y
+results_mediumET[[16]] <- results_mediumET[[16]] + remove_x + remove_y
+
+results_mediumET[[17]] <- results_mediumET[[17]] + remove_x
+results_mediumET[[18]] <- results_mediumET[[18]] + remove_x + remove_y
+results_mediumET[[19]] <- results_mediumET[[19]] + remove_y
+results_mediumET[[20]] <- results_mediumET[[20]] + remove_y
+
+results_mediumET[[21]] <- results_mediumET[[21]]
+results_mediumET[[22]] <- results_mediumET[[22]] + remove_y
+
+# create one plot
+wrap_plots(results_mediumET, ncol = 4, nrow = 6) + plot_layout(guides = "collect")
 
 # save figure
 ggsave("facet_mediumET.png",
        path = "./",
-       width = 10,
-       height = 12,
+       width = 12,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
+       height = 15,
 )
 
 
-# LOW ET
+### LOW ET ####
+# get a list of low ET sites and plot them individually
 df <- plot_allsites_fvar %>% dplyr::filter(cluster == "low fET")
+low_fET <- unique(df$name_site) # list of sites within fET group
+results_lowET <- list() # initialize list to save plots
 
-b <- heatscatter(x=df$deficit, y = df$fvar, pch = "6", ggplot = TRUE)
-b$data$name_site = df$name_site
-b <- b + labs(y = "fET (-)", x = "Cumulative water deficit (mm)") +
-  theme_classic() +
-  theme(
-    axis.text=element_text(size = 17),
-    axis.title=element_text(size = 19),
-    strip.text = element_text(size=17) # plot title of facet_wrap multiplot
-  ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
-  scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300)) +  #
-  facet_wrap(~name_site, ncol = 3)
-b
+for (i in 1:length(low_fET)){
+  site <- low_fET[i]
+
+  df <- plot_allsites_fvar %>% dplyr::filter(name_site == site)
+  a <- heatscatter(x=df$deficit, y = df$fvar, ggplot = TRUE)
+  a$data$name_site = df$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
+  a <- a + labs(y = "fET (-)",
+                x = "CWD (mm)",
+                title = site) +
+    theme_classic() +
+    theme(
+      axis.text=element_text(size = 17),
+      axis.title=element_text(size = 19),
+      strip.text = element_text(size=17), # plot title
+      plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
+    ) +
+    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
+    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
+
+  results_lowET[[length(results_lowET) + 1]] <- a # store plot in a list
+  print(i)
+}
+
+# functions to remove x and y axes when not needed
+remove_y <- theme(
+  axis.text.y = element_blank(),
+  axis.ticks.y = element_blank(),
+  axis.title.y = element_blank()
+)
+
+remove_x <- theme(
+  axis.text.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.x = element_blank()
+)
+
+results_lowET[[1]] <- results_lowET[[1]] + remove_x
+results_lowET[[2]] <- results_lowET[[2]] + remove_x + remove_y
+results_lowET[[3]] <- results_lowET[[3]] + remove_x + remove_y
+
+results_lowET[[4]] <- results_lowET[[4]] + remove_x
+results_lowET[[5]] <- results_lowET[[5]] + remove_x + remove_y
+results_lowET[[6]] <- results_lowET[[6]] + remove_x + remove_y
+
+results_lowET[[7]] <- results_lowET[[7]] + remove_x
+results_lowET[[8]] <- results_lowET[[8]] + remove_x + remove_y
+results_lowET[[9]] <- results_lowET[[9]] + remove_y
+
+results_lowET[[10]] <- results_lowET[[10]]
+results_lowET[[11]] <- results_lowET[[11]] + remove_y
+
+
+# create one plot
+wrap_plots(results_lowET, ncol = 3, nrow = 4) + plot_layout(guides = "collect")
 
 # save figure
 ggsave("facet_lowET.png",
        path = "./",
-       width = 8,
-       height = 8,
+       width = 10,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
+       height = 10,
 )
+
 
