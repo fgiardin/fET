@@ -118,10 +118,7 @@ table1 <- table1 %>%
   mutate(classid = factor(classid, # order IGBP classes (consistent with Fig. 1 of fluxnet2015 main paper)
                           levels = c("EBF", "DBF", "MF", "ENF",
                                      "WSA", "SAV", "OSH", "CSH",
-                                     "GRA", "CRO", "WET"
-                                     )
-                          )
-         )
+                                     "GRA", "CRO", "WET")))
 
 # IGBP class
 b <- ggplot(table1, aes(x = cluster, fill = classid)) +

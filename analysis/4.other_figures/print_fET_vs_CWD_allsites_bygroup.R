@@ -1,3 +1,6 @@
+# Script to print fET vs CWD site-by-site (1 plot per fET group)
+# originally using facet_wrap but the density function didn't work properly
+
 # load packages
 library(LSD) # load basic functions of LSD and then overwrite with our function
 devtools::load_all(".")
