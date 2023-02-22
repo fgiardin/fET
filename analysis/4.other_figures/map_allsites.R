@@ -18,26 +18,10 @@ showtext_auto()
 # load table with all data from analysis
 table1_final <- readRDS("data/table1_final.rds")
 
-# get list of sites prelesected by beni (here is 128, in paper is 135, why???)
-vector = c("AR-SLu", "AR-Vir", "AT-Neu", "AU-Ade", "AU-ASM", "AU-Cpr", "AU-Cum",
-           "AU-DaP", "AU-DaS", "AU-Dry", "AU-Emr", "AU-Fog", "AU-Gin", "AU-GWW",
-           "AU-How", "AU-RDF", "AU-Rob", "AU-Stp", "AU-Tum", "AU-Wac", "AU-Whr",
-           "AU-Wom", "AU-Ync", "BE-Bra", "BE-Lon", "BE-Vie", "BR-Sa3", "CH-Cha",
-           "CH-Dav", "CH-Fru", "CH-Lae", "CH-Oe1", "CH-Oe2", "CN-Cng", "CN-Dan",
-           "CN-Din", "CN-Du2", "CN-Qia", "CZ-BK1", "CZ-BK2", "CZ-wet", "DE-Akm",
-           "DE-Geb", "DE-Gri", "DE-Hai", "DE-Kli", "DE-Lkb", "DE-Obe", "DE-RuR",
-           "DE-RuS", "DE-Seh", "DE-SfN", "DE-Spw", "DE-Tha", "DK-Fou", "DK-NuF",
-           "DK-Sor", "ES-LgS", "ES-Ln2", "FI-Hyy", "FI-Jok", "FI-Sod", "FR-Fon",
-           "FR-Gri", "FR-LBr", "FR-Pue", "GF-Guy", "IT-BCi", "IT-CA1", "IT-CA2",
-           "IT-CA3", "IT-Col", "IT-Cp2", "IT-Cpz", "IT-Isp", "IT-La2", "IT-Lav",
-           "IT-MBo", "IT-Noe", "IT-PT1", "IT-Ren", "IT-Ro1", "IT-Ro2", "IT-SR2",
-           "IT-SRo", "IT-Tor", "JP-MBF", "JP-SMF", "NL-Hor", "NL-Loo", "NO-Adv",
-           "RU-Fyo", "SD-Dem", "SN-Dhr", "US-AR1", "US-AR2", "US-ARb", "US-ARc",
-           "US-ARM", "US-Blo", "US-Cop", "US-GLE", "US-Ha1", "US-Los", "US-Me2",
-           "US-Me6", "US-MMS", "US-Myb", "US-Ne1", "US-Ne2", "US-Ne3", "US-ORv",
-           "US-PFa", "US-SRG", "US-SRM", "US-Syv", "US-Ton", "US-Tw1", "US-Tw2",
-           "US-Tw3", "US-Tw4", "US-Twt", "US-UMB", "US-UMd", "US-Var", "US-WCr",
-           "US-Whs", "US-Wi0")
+# get list of 135 sites out of 166 considered in study (same as np2018)
+soil_usability <- read.csv("data/soilm_data_usability_fluxnet2015.csv") %>%
+  dplyr::filter(code != 0)
+vector <- soil_usability$mysitename
 
 # get coordinates of these sites
 ciaone <- ingestr::siteinfo_fluxnet2015 %>%
@@ -81,25 +65,33 @@ points <- st_transform(points, crs = robinson) # then trasform to Robinson
 
 # map
 p1 <- ggplot() +
-  geom_sf(data=countries_robinson, # countries borders
-          color='grey25',
-          linetype='solid',
-          fill= "#cad6df",
-          size=0.3) +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
           linetype='solid',
-          fill = NA,
+          fill = "white", #"#969696", #"grey75",#"#D6D6E9",
           size=0.7) +
+  geom_sf(data=countries_robinson, # country borders
+          color='grey25',
+          linetype='solid',
+          fill= "white",#cad6df", #D6D6E9
+          size=0.3) +
   theme_void() +
   geom_sf(data = points, # add EC sites
-          size=1,
+          size=2,
           aes(color = cluster, shape = cluster),) +
-  scale_shape_manual(values = c("high fET" = 19,
-                                "medium fET" = 19,
-                                "low fET" = 19,
+  scale_shape_manual(values = c("high fET" = 21,
+                                "medium fET" = 21,
+                                "low fET" = 21,
                                 "excluded" = 4),
                      breaks = c("high fET",
+                                "medium fET",
+                                "low fET",
+                                "excluded")) +
+  scale_color_manual(values = c("high fET" = "#3A5ECC",
+                                "medium fET" = "#F6C59D", #"#f6c59d", #"#e2dd44",
+                                "low fET" = "#e55b39",
+                                "excluded" = "black"), #"#00FF01"
+                     breaks = c("high fET", # control order in legend
                                 "medium fET",
                                 "low fET",
                                 "excluded")) +
@@ -111,24 +103,19 @@ p1 <- ggplot() +
   #                              "medium fET",
   #                              "low fET",
   #                              "excluded")) +
-  scale_color_manual(values = c("high fET" = "#3A5ECC",
-                               "medium fET" = "#e5aa44",
-                               "low fET" = "#e55b39",
-                               "excluded" = "#00FF01"),
-                    breaks = c("high fET", # control order in legend
-                               "medium fET",
-                               "low fET",
-                               "excluded")) +
-  theme(legend.title=element_blank(),
-        legend.text=element_text(
-          #lineheight = 0.3,
-          color = "grey30",
-          size=20,
-          face="bold"),
-        legend.position = c(.2, .6),
-        plot.margin=unit(c(0.01,0.01,0.01,0.01), 'cm') # useless
-        )
+  # scale_color_manual(values = c("EBF" = "#BEF268", "DBF" = "#A6CC5C", "MF" = "#218D22", "ENF" = "#006501",
+  #                              "WSA" = "#FE3130", "SAV" = "#8C1A1A", "CSH" = "#ff8300", "OSH" = "#cc4502",
+  #                              "GRA" = "#C3FFC2", "CRO" = "#f3f725", "WET" = "#01BFFE")) +
+
+  theme(
+    legend.title=element_blank(),
+    legend.text=element_text(color = "black", size=23, family = "Prata"),
+    legend.background = element_rect(fill="white", color = NA),
+    legend.position = c(.2, .2),
+    legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
+    plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'))
 p1
+ggsave("legend.png", path = "./", width = 11) # save this for the legend
 
 
 # inset on Europe
@@ -144,7 +131,9 @@ p2 <- p1 +
 p2
 
 # compose two maps
-ggdraw(p1) +
+p3 <- ggdraw(
+  p1 +
+    theme(legend.position = "none")) + # remove legend (the settings are not imported correctly in cowplot)
   draw_plot(
     {p2},
     # The distance along a (0,1) x-axis to draw the left edge of the plot
@@ -155,6 +144,7 @@ ggdraw(p1) +
     width = 0.33,
     height = 0.33)
 
+p3
 
 ggsave("beautiful_map.png", path = "./", width = 11)
 
