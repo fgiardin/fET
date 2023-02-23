@@ -68,13 +68,13 @@ p1 <- ggplot() +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
           linetype='solid',
-          fill = "white", #"#969696", #"grey75",#"#D6D6E9",
+          fill = "#91b0c4", #"#969696", #"grey75",#"#D6D6E9",
           size=0.7) +
   geom_sf(data=countries_robinson, # country borders
-          color='grey25',
+          color= "grey23",
           linetype='solid',
           fill= "white",#cad6df", #D6D6E9
-          size=0.3) +
+          size=3) +
   theme_void() +
   geom_sf(data = points, # add EC sites
           size=2,

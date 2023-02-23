@@ -9,14 +9,6 @@ source("~/fET/R/LSD.heatscatter.R")
 # load dataframes
 scatter_plots_all <- readRDS("data/dataframes/scatter_plots_all.rds")
 
-
-
-# time series -------------------------------------------------------------
-
-
-
-
-
 # scatter plots -----------------------------------------------------------
 
 # SPLASH

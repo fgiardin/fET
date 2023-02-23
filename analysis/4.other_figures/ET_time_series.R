@@ -30,7 +30,7 @@ plottin <- plottin %>%
   left_join(
     scatter_plots_all_selected %>% dplyr::filter(name_site == site1_name),
     by = c("date")
-    )
+  )
 
 # rename df and create column for long format
 site_1 <- plottin
@@ -101,7 +101,7 @@ df <- df_raw %>%
 
 # annotation
 grob_a <- grobTree(textGrob(site1_name, x=0.01,  y=0.95, hjust=0,
-                          gp=gpar(col="black", fontsize=14, fontface="bold")))
+                            gp=gpar(col="black", fontsize=14, fontface="bold")))
 
 
 # plot
@@ -214,8 +214,3 @@ ggarrange(a, b,
 
 # save
 ggsave("ET_time_series.png", path = "./", width = 9, height = 8)
-
-
-
-
-
