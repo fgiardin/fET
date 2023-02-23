@@ -7,6 +7,7 @@ library(tidyverse)
 library(ggpubr)
 library(ingestr)
 library(grid)
+library(plotrix)
 
 # load table with already-extracted soil texture data
 # produced by running analysis/3.summary_plots.R to create
@@ -34,8 +35,33 @@ table1 <- table1 %>%
 table1$cluster <- factor(table1$cluster, levels=rev(levels(table1$cluster)))
 
 
-### PANEL A: Soil texture ####################################
+### PANEL A0: Soil texture triangle plot ####################################
+texture_plot <- table1 %>%
+  dplyr::select(name_site, T_CLAY, T_SAND, T_SILT, cluster) %>%
+  na.omit() %>%
+  mutate(color = cluster)
 
+# create colors
+texture_plot$color <- gsub('high fET', '#e9c46a', texture_plot$color)
+texture_plot$color <- gsub('medium fET', '#f4a261', texture_plot$color)
+texture_plot$color <- gsub('low fET', '#e76f51', texture_plot$color)
+colors = c("#e9c46a", "#f4a261", "#e76f51") # for legend
+
+soil.texture(texture_plot[,2:4],
+             # label.points = TRUE, # show labels
+             # point.labels = texture_plot$cluster,
+             show.names = FALSE,
+             show.lines = FALSE,
+             show.grid = TRUE,
+             col.symbols = texture_plot$color,
+             bg.symbols = texture_plot$color,
+             pch=19)
+legend(x=1,
+       legend = c("high fET", "medium fET", "low fET"),
+       col = colors,
+       fill = colors)
+
+### PANEL A: Soil texture ####################################
 # calculate median of soil fraction per bin
 table1_soil <- table1 %>%
   group_by(cluster) %>%

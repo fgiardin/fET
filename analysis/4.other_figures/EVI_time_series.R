@@ -11,7 +11,7 @@ scatter_plots_all_selected <- scatter_plots_all %>%
   dplyr::select(date, name_site, pet_splash_coeff, NETRAD_mass_coeff)
 
 # define site to plot
-site1_name = "DK-Sor"
+site1_name = "AU-Stp"
 
 #  Site 1 -----------------------------------------------------------------
 load(paste0("data/output/", site1_name, "/data_frames/out_", site1_name, ".RData")) # load output of ML model
@@ -135,16 +135,10 @@ a <- ggplot(data = df_site1) +
 plot(a)
 
 # save
-ggsave(paste0("EVI_time_series_", site1_name, ".png"), path = "./", width = 18, height = 8)
+ggsave(paste0("EVI_time_series_", site1_name, ".png"), path = "./", width = 9, height = 4)
 
 
 
-# create combined figure with subpanels
-ggarrange(a, b,
-          labels = c("a", "b"),
-          ncol = 1, nrow = 2,
-          common.legend = TRUE, # have just one common legend
-          legend="top") # and place it in the bottom
 
 
 
