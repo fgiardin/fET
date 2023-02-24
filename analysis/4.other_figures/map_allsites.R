@@ -36,12 +36,67 @@ table1_merged$cluster <- as.character(table1_merged$cluster) %>% # convert to ch
   replace_na("excluded") %>% # rename NAs
   factor(levels = c("excluded", "low fET", "medium fET", "high fET")) # put back factors
 
-# map
+
+# aridity data ------------------------------------------------------------
+
+# load arditiy map
+epot <- brick("data-raw/aridity_map.nc", varname = "nrad")
+precip <- brick("data-raw/aridity_map.nc", varname = "precip")
+
+epot <- rotate(epot)
+precip <- rotate(precip)
+
+## handle missing values
+precip[precip < 0 | precip >= 1e20] <- NA
+epot[epot == - 100] <- NA
+epot[epot < 0 ] <- 0
+
+## 1997 and 1998 have issues in SRB --> exclude
+precip <- subset(precip, which(!getZ(precip) %in% c(1997, 1998)))
+epot <- subset(epot, which(!getZ(epot) %in% c(1997, 1998)))
+
+## compute aridity index
+aridity <- epot/precip
+
+## longterm mean
+aridity_mean <- calc(aridity, mean, na.rm = TRUE)
+
+arid.stats.sp <- arid.stats.sp[arid.stats.sp$longitude!=180,]
+
+# set robinson projection
+robinson <- CRS("+proj=robin +over")
+
+# convert airidity gridded raster dato dataframe for ggplot
+df_aridity <- aridity_mean %>%
+  #projectRaster(., res=50000, crs = robinson) %>%
+  rasterToPoints %>%
+  as.data.frame() %>%
+  `colnames<-`(c("x", "y", "ai")) %>%
+  mutate(ai = round(ai, digits = 2)) # round aridity to avoid problems plotting
+
+# put in right projection
+df_aridity_rob <- st_as_sf(df_aridity, coords = c("x", "y"), crs = 4326) # first put points in standard projection WGS84
+df_aridity_rob <- st_transform(df_aridity_rob, crs = robinson) # then trasform to Robinson
+
+# map ---------------------------------------------------------------------
+
 # set robinson projection
 robinson <- CRS("+proj=robin +over")
 
 # download countries
 countries <- ne_countries(scale = 50, returnclass = c("sf"))
+
+# transform the coastline to robinson
+countries_robinson <- st_transform(countries, robinson)
+
+# download ocean outlines
+ocean <- ne_download(
+  scale = 50,
+  type = "ocean",
+  category = "physical",
+  returnclass = "sf")
+
+ocean_robinson <- st_transform(ocean, robinson)
 
 # create a bounding box for the robinson projection
 # we'll use this as "trim" to remove jagged edges at
@@ -55,30 +110,37 @@ bb <- sf::st_union(sf::st_make_grid(
   n = 100))
 bb_robinson <- st_transform(bb, as.character(robinson))
 
-# transform the coastline to robinson
-countries_robinson <- st_transform(countries, robinson)
-
 # put points in right projection
 points <- st_as_sf(table1_merged, coords = c("lon", "lat"), crs = 4326) # first put points in standard projection WGS84
 points <- st_transform(points, crs = robinson) # then trasform to Robinson
-
 
 # map
 p1 <- ggplot() +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
           linetype='solid',
-          fill = "#91b0c4", #"#969696", #"grey75",#"#D6D6E9",
+          fill = "grey80", #"#969696", #"grey75",#"#D6D6E9",
           size=0.7) +
-  geom_sf(data=countries_robinson, # country borders
-          color= "grey23",
-          linetype='solid',
-          fill= "white",#cad6df", #D6D6E9
-          size=3) +
+  geom_sf(data = df_aridity_rob, # add aridity
+          size=2,
+          aes(color = ai)) +
+  geom_sf(data = ocean_robinson, # add oceans
+          color = "grey23",
+          fill = "white",
+          size = 0.2) +
+  # geom_sf(data = countries_robinson, # add countries
+  #         color = "grey80",
+  #         fill = NA,
+  #         size = 0.2) +
+  # geom_sf(data=countries_robinson, # country borders
+  #         color= "grey23",
+  #         linetype='solid',
+  #         fill= NA,#cad6df", #D6D6E9
+  #         size=0.3) +
   theme_void() +
   geom_sf(data = points, # add EC sites
           size=2,
-          aes(color = cluster, shape = cluster),) +
+          aes(color = cluster, shape = cluster)) +
   scale_shape_manual(values = c("high fET" = 21,
                                 "medium fET" = 21,
                                 "low fET" = 21,
