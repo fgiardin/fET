@@ -395,9 +395,10 @@ a <- ggplot(clusters_plot,
   coord_flip() +
   xlab(expression(paste(fET[paste(CWD, "=", 150)], " (-)"))) + # nested expression() with two "paste()" inside, one for the entire subscript and the other for the units
   ylab("Number of sites") +
-  scale_x_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
+  scale_x_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
   geom_vline(data=mu, aes(xintercept=grp.mean, color=cluster),
-             linetype="dashed")
+             linetype="dashed")  +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 16), breaks = seq(0, 15, 5))
 plot(a)
 
 # fVAR all sites
@@ -413,8 +414,8 @@ b <- b +
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14)
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300)) +
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0)) +
   geom_vline(xintercept = 125, linetype="dashed",
              color = "red") +
   geom_vline(xintercept = 175, linetype="dashed",
@@ -456,8 +457,8 @@ a <- a +
     plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) + # 'expand' # removes space between axis and plotted data (!!!)
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 a
 
 ### PANEL C: medium fET
@@ -486,8 +487,8 @@ c <- c +
     plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 c
 
 ### PANEL E: low fET
@@ -516,8 +517,8 @@ e <- e +
     plot.title = element_text(hjust = 0.5, size = 16),    # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 print(e)
 
 
@@ -623,8 +624,8 @@ z <- z +
     legend.text=element_text(size=14),
     plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 500, 100), limits = c(0, 500))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 500, 100), limits = c(0, 500), expand = c(0, 0))
 z
 ggsave("allsitesGLDAS.png", path = "./", width = 4, height = 4)
 
@@ -650,8 +651,8 @@ b <- b +
     plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 b
 
 ### PANEL D: medium fET GLDAS
@@ -675,8 +676,8 @@ d <- d +
     plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 d
 
 ### PANEL F: low fET GLDAS
@@ -700,8 +701,8 @@ f <- f +
     plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 f
 
 ####*** Compose final chart - deep learning and GLDAS ***####
@@ -748,8 +749,8 @@ a <- a +
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
     plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 310), expand = c(0, 0))
 a
 
 ### Panel B: high EF
@@ -773,8 +774,8 @@ b <- b +
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
     plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 b
 
 ### Panel c: medium EF
@@ -798,8 +799,8 @@ c <- c +
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
     plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 c
 
 ### Panel d: low EF
@@ -823,8 +824,8 @@ d <- d +
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm"),
     plot.title = element_text(hjust = 0.5, size = 16) # center and bold title
   ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5)) +
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 300))
+  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 d
 
 

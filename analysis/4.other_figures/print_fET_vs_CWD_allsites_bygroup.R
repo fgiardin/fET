@@ -33,8 +33,8 @@ for (i in 1:length(high_fET)){
       strip.text = element_text(size=17), # plot title
       plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
     ) +
-    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
-    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
+    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0)) +
+    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 310), expand = c(0, 0))
 
   results_highET[[length(results_highET) + 1]] <- a # store plot in a list
   print(i)
@@ -107,8 +107,8 @@ for (i in 1:length(medium_fET)){
       strip.text = element_text(size=17), # plot title
       plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
     ) +
-    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
-    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
+    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0)) +
+    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 310), expand = c(0, 0))
 
   results_mediumET[[length(results_mediumET) + 1]] <- a # store plot in a list
   print(i)
@@ -192,8 +192,8 @@ for (i in 1:length(low_fET)){
       strip.text = element_text(size=17), # plot title
       plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
     ) +
-    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4)) +
-    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 300))
+    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0)) +
+    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 310), expand = c(0, 0))
 
   results_lowET[[length(results_lowET) + 1]] <- a # store plot in a list
   print(i)

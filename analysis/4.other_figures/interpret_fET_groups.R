@@ -56,10 +56,11 @@ soil.texture(texture_plot[,2:4],
              col.symbols = texture_plot$color,
              bg.symbols = texture_plot$color,
              pch=19)
-legend(x=1,
+legend(x=0.9, y = 0.9,
        legend = c("high fET", "medium fET", "low fET"),
        col = colors,
        fill = colors)
+png("rplot.png", width = 500, height = 500)
 
 ### PANEL A: Soil texture ####################################
 # calculate median of soil fraction per bin
@@ -169,7 +170,8 @@ b <- ggplot(table1, aes(x = cluster, fill = classid)) +
   ) +
   ylab("Number of sites") +
   xlab("Cluster") +
-  scale_y_continuous(breaks = 1:22)
+  scale_y_continuous(breaks = 0:22, expand = c(0, 0)) +
+  scale_x_discrete(expand = c(0, 0))
 plot(b)
 
 ### PANEL C: aridity index ####################################
@@ -320,10 +322,11 @@ saveRDS(fET_timeseries, "./fET_timeseries.rds", compress = "xz")
 # save in CSV format as well
 write.csv(fET_timeseries,"./fET_timeseries.csv", row.names = FALSE)
 
+a0 <- NA # plot blank space in first panel
 
 ### PRINT FIGURE 6 ###########
 # combine graphs
-ggarrange(a, b, c, d, e, f,
+ggarrange(a0, b, c, d, e, f,
           labels = "auto",
           ncol = 2, nrow = 3
           # common.legend = TRUE, # have just one common legend
@@ -388,7 +391,9 @@ v <- ggplot(table1) +
   ) +
   annotation_custom(grob_a) +  # add slope on figure
   annotation_custom(grob_b) +
-  annotation_custom(grob_c)
+  annotation_custom(grob_c) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
 plot(v)
 
 
@@ -438,7 +443,9 @@ w <- ggplot(table1) +
   ) +
   annotation_custom(grob_a) +  # add slope on figure
   annotation_custom(grob_b) +
-  annotation_custom(grob_c)
+  annotation_custom(grob_c) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
 plot(w)
 
 ### SAND
@@ -486,7 +493,9 @@ z <- ggplot(table1) +
   ) +
   annotation_custom(grob_a) +  # add slope on figure
   annotation_custom(grob_b) +
-  annotation_custom(grob_c)
+  annotation_custom(grob_c) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
 #scale_size(range = c(1,10))
 plot(z)
 

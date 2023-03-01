@@ -10,8 +10,11 @@ scatter_plots_all <- readRDS("data/dataframes/scatter_plots_all.rds")
 scatter_plots_all_selected <- scatter_plots_all %>%
   dplyr::select(date, name_site, pet_splash_coeff, NETRAD_mass_coeff)
 
+### define sites
+site1_name = "DK-Sor"
+site2_name = "US-Ton"
+
 ### Site 1
-site1_name = "AU-Stp"
 load(paste0("data/output/", site1_name, "/data_frames/out_", site1_name, ".RData")) # load output of ML model
 load(paste0("data/output/", site1_name, "/data_frames/ddf_", site1_name, ".RData")) # load input of ML model
 
@@ -38,7 +41,6 @@ site_1$site <- site1_name
 
 
 ### Site 2
-site2_name = "AU-Cpr"
 load(paste0("data/output/", site2_name, "/data_frames/out_", site2_name, ".RData")) # load output of ML model
 load(paste0("data/output/", site2_name, "/data_frames/ddf_", site2_name, ".RData")) # load input of ML model
 
@@ -124,24 +126,24 @@ a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
   theme(legend.title=element_blank()) +
   scale_color_manual(  # set line colors
     values = c(obs = "#333333",
-               pet_SPLASH = "#0072B2", # blue
+               nn_act = "#0072B2", # blue
                nn_pot = "#D81B60", # red
                netrad = "#BBCC33"), # green
     labels = c(obs = expression(paste(ET[obs])), # set labels for legend
-               pet_SPLASH = expression(paste(PET[PT])),
+               nn_act = expression(paste(ET[NN])),
                nn_pot = expression(paste(PET[NN])),
                netrad = "Net Radiation"
     )
   ) +
   scale_linetype_manual(  # set line types
     values = c(obs = "solid",
-               pet_SPLASH = "solid",
+               nn_act = "solid",
                nn_pot = "solid",
                netrad = "dashed"
     ),
     guide = "none" # hide legend for lines
   ) +
-  scale_x_date(date_breaks="1 month", date_labels = "%b") + # set correct x axis
+  scale_x_date(date_breaks="1 month", date_labels = "%b", expand = c(0, 0)) + # set correct x axis
   annotation_custom(grob_a) +
   theme( # set legend position and orientation, as well as text size
     legend.position = "top",
@@ -149,9 +151,8 @@ a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
     legend.justification = "left",
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
-    legend.text=element_text(size = 12)
-  )
-#ylim(0,4.3) # set limits of y axis
+    legend.text=element_text(size = 12)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 4.3))
 plot(a)
 
 grob_b <- grobTree(textGrob(site2_name, x=0.01,  y=0.95, hjust=0,
@@ -175,24 +176,21 @@ b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
   theme(legend.title=element_blank()) +
   scale_color_manual(  # set line colors
     values = c(obs = "#333333",
-               pet_SPLASH = "#0072B2", # blue
+               nn_act = "#0072B2", # blue
                nn_pot = "#D81B60", # red
                netrad = "#BBCC33"), # green
     labels = c(obs = expression(paste(ET[obs])), # set labels for legend
-               pet_SPLASH = expression(paste(PET[PT])),
+               nn_act = expression(paste(ET[NN])),
                nn_pot = expression(paste(PET[NN])),
-               netrad = "Net Radiation"
-    )
-  ) +
+               netrad = "Net Radiation")) +
   scale_linetype_manual(
     values = c(obs = "solid",
-               pet_SPLASH = "solid",
+               nn_act = "solid",
                nn_pot = "solid",
                netrad = "dashed"
     ),
-    guide = "none"
-  ) +
-  scale_x_date(date_breaks="1 month", date_labels = "%b") +
+    guide = "none") +
+  scale_x_date(date_breaks="1 month", date_labels = "%b", expand = c(0, 0)) +
   annotation_custom(grob_b) +
   theme(
     legend.position = "top",
@@ -200,9 +198,8 @@ b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
     legend.justification = "left",
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
-    legend.text=element_text(size = 12)
-  )
-# ylim(0,4.3)
+    legend.text=element_text(size = 12)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 4.3))
 plot(b)
 
 # create combined figure with subpanels
