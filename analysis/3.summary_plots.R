@@ -924,13 +924,16 @@ hhdf_allsites <- do.call(
 
 # define two dataframes with different set of predictors and remove NAs in both
 hhdf_4 <- hhdf_allsites %>%
-  dplyr::select("NETRAD",
+  dplyr::filter(name_site %in% vec_sites) %>%
+  dplyr::select("name_site",
+                "NETRAD",
                 "VPD_F",
                 "TA_F") %>%
   drop_na()
 
 hhdf_7 <- hhdf_allsites %>%
-  dplyr::select("NETRAD",
+  dplyr::select("name_site",
+                "NETRAD",
                 "VPD_F",
                 "TA_F",
                 "WS_F",
@@ -938,9 +941,12 @@ hhdf_7 <- hhdf_allsites %>%
                 "USTAR") %>%
   drop_na()
 
-# find percentage of missing data compared to the original data
-perc_4 <- nrow(hhdf_4)/nrow(hhdf_allsites)
-perc_7 <- nrow(hhdf_7)/nrow(hhdf_allsites)
+# find percentage of missing data compared to the original data (focusing only on our final list of sites)
+perc_4 <- 1 - nrow(hhdf_4 %>% dplyr::filter(name_site %in% vec_sites))/
+  nrow(hhdf_allsites %>% dplyr::filter(name_site %in% vec_sites))
+
+perc_7 <- 1 - nrow(hhdf_7 %>% dplyr::filter(name_site %in% vec_sites))/
+  nrow(hhdf_allsites %>% dplyr::filter(name_site %in% vec_sites))
 
 
 

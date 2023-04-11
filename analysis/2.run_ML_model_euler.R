@@ -41,18 +41,21 @@ dir.create(results_path)
 dir.create(data_frames_path)
 
 # load dataframes
-# CWD + DDF
+# CWD + DDF + transpiration
 CWD_name = sprintf("%s/data_frames/ddf_CWD_%s.RData", dir_name, sitename)
-ddf_name = sprintf("%s/data_frames/ddf_%s.RData", dir_name, sitename)
+# ddf_name = sprintf("%s/data_frames/ddf_%s.RData", dir_name, sitename)
+ddf_T_name = sprintf("%s/data_frames/ddf_T_%s.RData", dir_name, sitename)
 load(CWD_name)
-load(ddf_name)
+# load(ddf_name)
+load(ddf_T_name)
+ddf <- ddf_T
 
 
 ### DEFINE SETTINGS, FIND THRESHOLD AND RUN MODEL ######################
 
 # define settings
 settings <- list(
-  target         = "ET",
+  target         = "T",
   predictors = c("NETRAD","VPD_F", "TA_F", "EVI"),
   varnams_soilm  = "SWC_F_MDS_1",
   rowid          = "date",
@@ -74,7 +77,7 @@ settings <- list(
 
 # USE MODELLED Soil Moisture IF SWC IS NOT CONSISTENT
 # load .csv with soil moisture data classified according to their usability (see Methods)
-soil_usability <- read.csv("~/data/fLUE/soilm_data_usability_fluxnet2015.csv")
+soil_usability <- read.csv("data/soilm_data_usability_fluxnet2015.csv")
 
 soil_usability_filtered <- soil_usability %>%
   dplyr::filter(mysitename == sitename)
@@ -121,37 +124,41 @@ df_train <- prepare_trainingdata_fvar(ddf, settings)
 # ggsave(paste0("SM_hist_", sitename, ".png"), path = "./", width = 5, height = 4)
 
 
-###*** HP TUNING ***###
+###*** HP TUNING ***####
 print("LAUNCH HP TUNING")
-# create a subdirectory for every site (to avoid run directories with same name updated at the same time)
-runs_path = sprintf("/cluster/scratch/fgiardina/%s", sitename)
-dir.create(runs_path)
-runs <- tuning_run("./R2/keras_grid_search.R",  # See methods for how we defined the tuning
-                   flags = list(
-                     nodes1 = c(8, 16, 32, 64),
-                     nodes2 = c(8, 16, 32, 64),
-                     nodes3 = c(8, 16, 32, 64),
-                     nodes4 = c(8, 16, 32, 64),
-                     nodes5 = c(8, 16, 32, 64),
-                     num_layers = c(1, 2, 3, 4, 5),
-                     optimizer = c("adam"),
-                     activation = c("relu"),
-                     batch_size = c(16, 32, 64),
-                     epochs = c(10, 20, 30),
-                     learning_rate = c(0.01)
-                   ),
-                   sample = 0.05, # pervarcentage of the total models to assess: 0.05; faster: 0.00005
-                   runs_dir = runs_path # don't save output directly in /runs (otherwise the high number of generated log files will clog Euler)
-)
+# # create a subdirectory for every site (to avoid run directories with same name updated at the same time)
+# runs_path = sprintf("/cluster/scratch/fgiardina/%s", sitename)
+# dir.create(runs_path)
+# runs <- tuning_run("./R2/keras_grid_search.R",  # See methods for how we defined the tuning
+#                    flags = list(
+#                      nodes1 = c(8, 16, 32, 64),
+#                      nodes2 = c(8, 16, 32, 64),
+#                      nodes3 = c(8, 16, 32, 64),
+#                      nodes4 = c(8, 16, 32, 64),
+#                      nodes5 = c(8, 16, 32, 64),
+#                      num_layers = c(1, 2, 3, 4, 5),
+#                      optimizer = c("adam"),
+#                      activation = c("relu"),
+#                      batch_size = c(16, 32, 64),
+#                      epochs = c(10, 20, 30),
+#                      learning_rate = c(0.01)
+#                    ),
+#                    sample = 0.05, # pervarcentage of the total models to assess: 0.05; faster: 0.00005
+#                    runs_dir = runs_path # don't save output directly in /runs (otherwise the high number of generated log files will clog Euler)
+# )
+#
+# # save output
+# file = sprintf("%s/runs_%s.RData", data_frames_path, sitename)
+# save(runs, file = file)
+# print("HP TUNING COMPLETED")
+#
+# # delete all logfiles of runs (otherwise there will be too many saved files and Euler will explode)
+# clean_runs() # first archive them (otherwise won't delete)
+# purge_runs() # then delete them
 
-# save output
-file = sprintf("%s/runs_%s.RData", data_frames_path, sitename)
-save(runs, file = file)
-print("HP TUNING COMPLETED")
-
-# delete all logfiles of runs (otherwise there will be too many saved files and Euler will explode)
-clean_runs() # first archive them (otherwise won't delete)
-purge_runs() # then delete them
+# directly load tuned HP
+HP_name = sprintf("%s/data_frames/runs_%s.RData", dir_name, sitename)
+load(HP_name)
 
 # choose best run
 best_run = runs %>%
@@ -358,7 +365,7 @@ plot.window(xlim = c(min(ddf_plot_biginstances$deficit, na.rm=TRUE),max(ddf_plot
 heatscatterpoints(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar)
 axis(1)
 axis(2)
-title(main = title, xlab = "Big instances CWD (mm)", ylab = "fET")
+title(main = title, xlab = "Cumulative water deficit (mm)", ylab = "fT")
 box()
 dev.off()
 

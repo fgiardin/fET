@@ -9,6 +9,7 @@ library(sf)
 library(patchwork)
 library(cowplot)
 library(ingestr)
+library(terra)
 
 # custom fonts
 library(showtext)
