@@ -246,57 +246,57 @@ m +  scale_color_manual(values = c("black","chartreuse","brown1","cornflowerblue
 # save plot
 ggsave("ET_vs_nn_zoom.png", path = results_path, width = 5, height = 3)
 
-##### SOIL MOISTURE BIAS #####
-print("SOIL MOISTURE BIAS")
-df_test <- out$df_all %>%
-  mutate(bias_act = nn_act - obs,
-         bias_pot = nn_pot - obs,
-         soilm_bin = cut(soilm, 10)
-  )
-
-df_test %>%
-  tidyr::pivot_longer(cols = c(bias_act, bias_pot), names_to = "source", values_to = "bias") %>%
-  ggplot(aes(x = soilm_bin, y = bias, fill = source)) +
-  geom_boxplot() +
-  geom_hline(aes(yintercept = 0.0), linetype = "dotted") +
-  labs(title = "Bias vs. soil moisture")
-
-# save plot
-ggsave("bias_act_pot.png", path = results_path, width = 8, height = 4)
-
-# linear regression
-linmod <- lm(bias_act ~ soilm, data = df_test)
-testsum <- summary(linmod)
-slope_mid <- testsum$coefficients["soilm","Estimate"]
-slope_se  <- testsum$coefficients["soilm","Std. Error"]
-passtest_bias_vs_soilm <- ((slope_mid - slope_se) < 0 && (slope_mid + slope_se) > 0)
-print(passtest_bias_vs_soilm)
-
-df_test %>%
-  ggplot(aes(x = soilm, y = bias_act)) +
-  geom_point() +
-  geom_smooth(method = "lm")
-
-# save plot
-ggsave("lm_bias_vs_soilmoisture.png", path = results_path, width = 5, height = 5)
-dev.off()
-
-##### NNact -- NNpot BIAS DURING MOIST DAYS (BOXPLOT) #####
-print("BIAS DURING MOIST DAYS (BOXPLOT)")
-df_test %>%
-  tidyr::pivot_longer(cols = c(bias_act, bias_pot), names_to = "source", values_to = "bias") %>%
-  dplyr::filter(moist) %>%
-  ggplot(aes(y = bias, fill = source)) +
-  geom_boxplot() +
-  geom_hline(aes(yintercept = 0), linetype = "dotted")
-
-df_test %>%
-  dplyr::filter(moist) %>%
-  summarise(bias_act = mean(bias_act, na.rm = TRUE), bias_pot = mean(bias_pot, na.rm = TRUE))
-
-# save plot
-ggsave("bias_nn_moistdays_doublecheck.png", path = results_path, width = 5, height = 5)
-dev.off()
+# ##### SOIL MOISTURE BIAS #####
+# print("SOIL MOISTURE BIAS")
+# df_test <- out$df_all %>%
+#   mutate(bias_act = nn_act - obs,
+#          bias_pot = nn_pot - obs,
+#          soilm_bin = cut(soilm, 10)
+#   )
+#
+# df_test %>%
+#   tidyr::pivot_longer(cols = c(bias_act, bias_pot), names_to = "source", values_to = "bias") %>%
+#   ggplot(aes(x = soilm_bin, y = bias, fill = source)) +
+#   geom_boxplot() +
+#   geom_hline(aes(yintercept = 0.0), linetype = "dotted") +
+#   labs(title = "Bias vs. soil moisture")
+#
+# # save plot
+# ggsave("bias_act_pot.png", path = results_path, width = 8, height = 4)
+#
+# # linear regression
+# linmod <- lm(bias_act ~ soilm, data = df_test)
+# testsum <- summary(linmod)
+# slope_mid <- testsum$coefficients["soilm","Estimate"]
+# slope_se  <- testsum$coefficients["soilm","Std. Error"]
+# passtest_bias_vs_soilm <- ((slope_mid - slope_se) < 0 && (slope_mid + slope_se) > 0)
+# print(passtest_bias_vs_soilm)
+#
+# df_test %>%
+#   ggplot(aes(x = soilm, y = bias_act)) +
+#   geom_point() +
+#   geom_smooth(method = "lm")
+#
+# # save plot
+# ggsave("lm_bias_vs_soilmoisture.png", path = results_path, width = 5, height = 5)
+# dev.off()
+#
+# ##### NNact -- NNpot BIAS DURING MOIST DAYS (BOXPLOT) #####
+# print("BIAS DURING MOIST DAYS (BOXPLOT)")
+# df_test %>%
+#   tidyr::pivot_longer(cols = c(bias_act, bias_pot), names_to = "source", values_to = "bias") %>%
+#   dplyr::filter(moist) %>%
+#   ggplot(aes(y = bias, fill = source)) +
+#   geom_boxplot() +
+#   geom_hline(aes(yintercept = 0), linetype = "dotted")
+#
+# df_test %>%
+#   dplyr::filter(moist) %>%
+#   summarise(bias_act = mean(bias_act, na.rm = TRUE), bias_pot = mean(bias_pot, na.rm = TRUE))
+#
+# # save plot
+# ggsave("bias_nn_moistdays_doublecheck.png", path = results_path, width = 5, height = 5)
+# dev.off()
 
 ##### SCATTER PLOTS OF MODELS VS OBS #####
 print("SCATTER PLOTS OF MODELS VS OBS")
