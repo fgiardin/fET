@@ -8,8 +8,6 @@
 # # define sitename
 # sitename = args[1] # you can run locally and set sitename equal to a fluxnet site name (e.g. AU-Wom)
 # print(sitename)
-for i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor"){
-sitename = i
 
 #Load packages
 devtools::load_all(".")
@@ -31,6 +29,9 @@ library(yardstick)
 library(ggpointdensity)
 library(viridis)
 library(LSD)
+
+for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor")){
+  sitename = i
 
 # create directory for results
 dir_name = sprintf("data/output/%s", sitename) # path to directory of site (gia creata in pre_process)
