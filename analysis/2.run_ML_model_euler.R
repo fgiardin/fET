@@ -30,7 +30,7 @@ library(ggpointdensity)
 library(viridis)
 library(LSD)
 
-for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor")){
+for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS")){
   sitename = i
   print(i)
 
@@ -52,7 +52,8 @@ ddf_T_name = sprintf("%s/data_frames/ddf_T_%s.RData", dir_name, sitename)
 load(CWD_name)
 # load(ddf_name)
 load(ddf_T_name)
-ddf <- ddf_T
+ddf <- ddf_T %>%
+  dplyr::filter(T > 0)
 
 
 ### DEFINE SETTINGS, FIND THRESHOLD AND RUN MODEL ######################
