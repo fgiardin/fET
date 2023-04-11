@@ -37,7 +37,7 @@ for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS")){
 # create directory for results
 dir_name = sprintf("data/output/%s", sitename) # path to directory of site (gia creata in pre_process)
 data_frames_path = sprintf("%s/data_frames", dir_name) # path to dir of dataframes (gia creata)
-results_path = sprintf("%s/results", dir_name)
+results_path = sprintf("%s/results/transpiration", dir_name)
 
 # create results path
 dir.create(dir_name)
