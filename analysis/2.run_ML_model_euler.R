@@ -2,12 +2,14 @@
 
 #!/usr/bin/env Rscript
 
-## evaluate arguments (they are then available as args[1], args[2], ...
-args = commandArgs(trailingOnly=TRUE)
-
-# define sitename
-sitename = args[1] # you can run locally and set sitename equal to a fluxnet site name (e.g. AU-Wom)
-print(sitename)
+# ## evaluate arguments (they are then available as args[1], args[2], ...
+# args = commandArgs(trailingOnly=TRUE)
+#
+# # define sitename
+# sitename = args[1] # you can run locally and set sitename equal to a fluxnet site name (e.g. AU-Wom)
+# print(sitename)
+for i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor"){
+sitename = i
 
 #Load packages
 devtools::load_all(".")
@@ -448,7 +450,7 @@ segmented$gg +
   labs(title = sprintf("%s, Number of breakpoints = %d", sitename, segmented$num_splits)) +
   ylab("fET")
 ggsave("fET_vs_CWD_bilinear.png", path = results_path, width = 4, height = 4)
-
+}
 
 
 
