@@ -221,7 +221,7 @@ load("data-raw/df_gti.RData")
 table1 <- table1 %>%
   left_join(df_gti %>% dplyr::select(name_site, gti), by = "name_site")
 
-d <- ggplot(df_gti, aes(x= cluster, y = gti, fill = cluster)) +
+d <- ggplot(df_gti, aes(x = cluster, y = gti, fill = cluster)) +
   stat_boxplot(geom ='errorbar', width = 0.5) +
   geom_boxplot(width = 0.5) +
   theme_classic() +
@@ -324,19 +324,20 @@ write.csv(fET_timeseries,"./fET_timeseries.csv", row.names = FALSE)
 
 a0 <- NA # plot blank space in first panel
 
-### PRINT FIGURE 6 ###########
+### PRINT FIGURE 7 ###########
 # combine graphs
 ggarrange(a0, b, c, d, e, f,
           labels = "auto",
-          ncol = 2, nrow = 3
+          ncol = 2, nrow = 3)
           # common.legend = TRUE, # have just one common legend
           # legend="bottom" # consider mettere legenda sotto a tutto con nomi IGBP spelled out
-)
+
 # save plot
-ggsave("Figure_6.png", path = "./", width = 9, height = 12)
+ggsave("Figure_7.png", path = "./", width = 9, height = 12)
 
 
-### FIGURE 7: minimum fET vs aridity index, size is soil type #################
+
+### FIGURE 8: minimum fET vs aridity index, size is soil type #################
 
 # Notes on the statistical significance of the slopes
 # We use 't' critical value from performing t-test on the slope using alpha = 0.05.

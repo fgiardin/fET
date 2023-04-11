@@ -30,8 +30,7 @@ site_list = c("AT-Neu", "AU-Cpr", "AU-Cum", "AU-DaP", "AU-DaS", "AU-Emr", "AU-Gi
               "IT-BCi", "IT-CA2", "IT-CA3", "IT-Col", "IT-Cpz", "IT-Isp", "IT-Lav", "IT-MBo", "IT-Noe",
               "IT-PT1", "IT-Ren", "IT-Ro2", "IT-SR2", "IT-SRo", "IT-Tor", "NL-Loo", "RU-Fyo", "US-AR2",
               "US-ARb", "US-ARM", "US-Blo", "US-Cop", "US-GLE", "US-Los", "US-MMS", "US-Ne1", "US-Ne2",
-              "US-Ne3", "US-SRG", "US-SRM", "US-Syv", "US-Ton", "US-Var", "US-WCr", "US-Wi0"
-              )
+              "US-Ne3", "US-SRG", "US-SRM", "US-Syv", "US-Ton", "US-Var", "US-WCr", "US-Wi0")
 
 
 ### FILTER SITES BASED ON MODEL PERFORMANCE ############################
@@ -102,7 +101,7 @@ summary_allsites <- summary_allsites_raw %>%
 save(summary_allsites, file = "./summary_allsites.RData")
 
 # extract final number of sites and save
-vec_sites = summary_allsites$name_of_site
+vec_sites = unique(summary_allsites$name_of_site)
 save(vec_sites, file = "./vec_sites.RData")
 
 
@@ -177,7 +176,6 @@ ddf_allsites <- do.call(
         mutate(name_site = substr(basename(file), 5, 10)) %>%
         mutate(NETRAD_mass = LE.to.ET(NETRAD, TA_F)*24*60*60) %>%
         dplyr::select(date, NETRAD_mass, name_site)
-
     }
   )
 )
@@ -523,6 +521,7 @@ print(e)
 
 
 
+
 ####*** CHARTS GLDAS ***####
 # GLDAS DF
 file_locations_out <- list.files("data/output_GLDAS",
@@ -546,10 +545,12 @@ GLDAS_allsites_raw <- do.call(
   )
 )
 
+
 # filter
 GLDAS_allsites <- GLDAS_allsites_raw %>%
-  dplyr::filter(PET >0) %>% # remove Inf values for fET
-  dplyr::filter(ET >0) %>%
+  dplyr::filter(PET > 0) %>% # remove Inf values for fET
+  dplyr::filter(ET > 0) %>%
+  mutate(fvar = ET/PET) %>% # recalculate fvar to avoid infinite values when dividing by zero
   dplyr::filter(fvar < 1.5) %>% # focus on 0-1.5 interval
   dplyr::filter(fvar > 0) %>%
   group_by(name_site) %>%
@@ -594,9 +595,9 @@ CWD_allsites_gldas <- do.call(
 
 # merge GLDAS and CWD for all sites
 plot_allsites_gldas <- GLDAS_allsites %>%
-  left_join(CWD_allsites_gldas, by = c("date", "name_site")) %>%
+  left_join(CWD_allsites_gldas %>% dplyr::select(-iinst, -dday, -water_balance), by = c("date", "name_site")) %>%
   dplyr::filter(name_site %in% vec_sites) %>%
-  na.omit()
+  drop_na()
 
 # rescale GLDAS fvar to have maximum around 1
 plot_allsites_gldas <- plot_allsites_gldas %>%
@@ -630,7 +631,7 @@ z
 ggsave("allsitesGLDAS.png", path = "./", width = 4, height = 4)
 
 
-### PANEL B: low fET GLDAS
+### PANEL B: high fET GLDAS
 # filter
 plot_b <- plot_allsites_gldas %>%
   dplyr::filter(name_site %in% sites_a) # panels a and b have same sites
@@ -874,5 +875,72 @@ table1 <- table1 %>%
             by = c("name_site")
             )
 save(table1, file = "./table1.RData")
+
+
+# Calculate percentage of missing data based on number of predictors ----------------
+vec_sites <- c("AU-Cpr", "AU-Cum", "AU-DaP", "AU-DaS", "AU-Gin", "AU-How",
+               "AU-RDF", "AU-Stp", "AU-Wom", "BE-Vie", "BR-Sa3", "CH-Dav",
+               "DE-Geb", "DE-Kli", "DE-Lkb", "DE-Obe", "DE-Seh", "DE-Tha",
+               "DK-Sor", "FR-LBr", "FR-Pue", "IT-BCi", "IT-CA3", "IT-Col",
+               "IT-Cpz", "IT-Lav", "IT-Noe", "IT-Ren", "IT-Ro2", "IT-SR2",
+               "IT-SRo", "IT-Tor", "NL-Loo", "RU-Fyo", "US-AR2", "US-ARb",
+               "US-ARM", "US-Blo", "US-Los", "US-MMS", "US-Ne1", "US-Ne2",
+               "US-Ne3", "US-SRG", "US-SRM", "US-Syv", "US-Ton", "US-Var",
+               "US-WCr")
+
+file_locations <- list.files("data/output",
+                                glob2rx("hhdf_??????.RData"),
+                                full.names = TRUE,
+                                recursive = TRUE
+)
+
+# extract netrad and temperature
+hhdf_allsites <- do.call(
+  "rbind",
+  lapply(
+    file_locations,
+    function(file){
+      load(file)
+      print(file)
+
+      hhdf <- hhdf %>%
+        mutate(name_site = substr(basename(file), 6, 11)) %>%
+        dplyr::select(
+          one_of(
+            "date", # omit EVI as it has it's there in both set of predictors
+            "name_site",
+            "NETRAD",
+            "VPD_F",
+            "TA_F",
+            "WS_F",
+            "TS_F_MDS_1",
+            "USTAR"
+          )
+        )
+      }
+    )
+  )
+
+
+# define two dataframes with different set of predictors and remove NAs in both
+hhdf_4 <- hhdf_allsites %>%
+  dplyr::select("NETRAD",
+                "VPD_F",
+                "TA_F") %>%
+  drop_na()
+
+hhdf_7 <- hhdf_allsites %>%
+  dplyr::select("NETRAD",
+                "VPD_F",
+                "TA_F",
+                "WS_F",
+                "TS_F_MDS_1",
+                "USTAR") %>%
+  drop_na()
+
+# find percentage of missing data compared to the original data
+perc_4 <- nrow(hhdf_4)/nrow(hhdf_allsites)
+perc_7 <- nrow(hhdf_7)/nrow(hhdf_allsites)
+
 
 

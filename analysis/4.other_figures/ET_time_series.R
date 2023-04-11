@@ -11,8 +11,8 @@ scatter_plots_all_selected <- scatter_plots_all %>%
   dplyr::select(date, name_site, pet_splash_coeff, NETRAD_mass_coeff)
 
 ### define sites
-site1_name = "DK-Sor"
-site2_name = "US-Ton"
+site1_name = "AU-Cpr"
+site2_name = "AU-Stp"
 
 ### Site 1
 load(paste0("data/output/", site1_name, "/data_frames/out_", site1_name, ".RData")) # load output of ML model
@@ -152,7 +152,7 @@ a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
     legend.text=element_text(size = 12)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 4.3))
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 2))
 plot(a)
 
 grob_b <- grobTree(textGrob(site2_name, x=0.01,  y=0.95, hjust=0,
@@ -198,8 +198,8 @@ b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
     legend.justification = "left",
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
-    legend.text=element_text(size = 12)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 4.3))
+    legend.text=element_text(size = 12))
+  # scale_y_continuous(expand = c(0, 0), limits = c(0, 4.3))
 plot(b)
 
 # create combined figure with subpanels

@@ -17,9 +17,9 @@ library(caret)
 # Import TensorFlow and the TensorBoard HParams plugin
 library(tensorflow)
 library(reticulate)
-#use_condaenv("r-reticulate")
+# use_condaenv("r-reticulate")
 library(keras)
-#is_keras_available()
+is_keras_available()
 hp <- import("tensorboard.plugins.hparams.api")
 library(tfruns)
 library(tfestimators)
@@ -105,6 +105,22 @@ if(settings$varnams_soilm == "SWC_F_MDS_1") {
 # prepare data with correct threshold
 df_train <- prepare_trainingdata_fvar(ddf, settings)
 
+# # histogram of SM threshold (for Reviews)
+# settings$varnams_soilm
+# a <- ggplot(df_train, aes(x=wcont_s11)) +
+#   geom_histogram(color="black", fill="grey45") +
+#   theme_classic() +
+#   geom_vline(aes(xintercept=settings$threshold),
+#              color="blue", linetype="dashed", size=1) +
+#   labs(
+#     title = sitename,
+#     x = "Soil moisture (%)",
+#     y = "Frequency (d)") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# a
+# ggsave(paste0("SM_hist_", sitename, ".png"), path = "./", width = 5, height = 4)
+
+
 ###*** HP TUNING ***###
 print("LAUNCH HP TUNING")
 # create a subdirectory for every site (to avoid run directories with same name updated at the same time)
@@ -124,7 +140,7 @@ runs <- tuning_run("./R2/keras_grid_search.R",  # See methods for how we defined
                      epochs = c(10, 20, 30),
                      learning_rate = c(0.01)
                    ),
-                   sample = 0.05, # percentage of the total models to assess: 0.05; faster: 0.00005
+                   sample = 0.05, # pervarcentage of the total models to assess: 0.05; faster: 0.00005
                    runs_dir = runs_path # don't save output directly in /runs (otherwise the high number of generated log files will clog Euler)
 )
 

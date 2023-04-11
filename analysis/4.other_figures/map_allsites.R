@@ -60,38 +60,50 @@ ocean_robinson <- st_transform(ocean, robinson)
 # we'll use this as "trim" to remove jagged edges at
 # end of the map (due to the curved nature of the
 # robinson projection)
-bb <- sf::st_union(sf::st_make_grid(
-  st_bbox(c(xmin = -180,
-            xmax = 180,
-            ymax = 90,
-            ymin = -90), crs = st_crs(4326)),
-  n = 100))
+bb <- sf::st_union(
+  sf::st_make_grid(
+    st_bbox(
+      c(xmin = -180,
+        xmax = 180,
+        ymax = 90,
+        ymin = -90),
+      crs = st_crs(4326)),
+    n = 100))
 bb_robinson <- st_transform(bb, as.character(robinson))
 
 # put points in right projection
 points <- st_as_sf(table1_merged, coords = c("lon", "lat"), crs = 4326) # first put points in standard projection WGS84
 points <- st_transform(points, crs = robinson) # then trasform to Robinson
 
+crop <- data.frame(
+  c(-180, 180),
+  c(-60, 88))
+names(crop) <- c("lon", "lat")
+crop <- st_as_sf(crop, coords = c("lon", "lat"), crs = 4326)
+crop <- st_transform(crop, crs = robinson)
+
+
+
 # map
 p1 <- ggplot() +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
           linetype='solid',
-          fill = "lightblue", # "lightblue", #"grey75",#"#D6D6E9",
-          size=0.7) +
-  geom_sf(data=countries_robinson, # country borders
-          color= "grey23",
-          linetype='solid',
-          fill= "white",#cad6df", #D6D6E9
-          size=0.3) +
-  # geom_sf(data = ocean_robinson, # add oceans
-  #         color = "grey23",
-  #         fill = "lightblue",
-  #         size = 0.2) +
+          fill = "white", # "lightblue", #"grey75",#"#D6D6E9",
+          size=0.1) +
+  # geom_sf(data=countries_robinson, # country borders
+  #         color= "grey23",
+  #         linetype='solid',
+  #         fill= "white",#cad6df", #D6D6E9
+  #         size=0.3) +
+  geom_sf(data = ocean_robinson, # add oceans
+          color = "grey23",
+          fill = "lightblue",
+          size = 0.2) +
   theme_void() +
   geom_sf(data = points, # add EC sites
           size=2,
-          aes(color = cluster, shape = cluster)) +
+          aes(color = factor(cluster), shape = factor(cluster), fill = factor(cluster))) +
   scale_shape_manual(values = c("high fET" = 21,
                                 "medium fET" = 21,
                                 "low fET" = 21,
@@ -100,26 +112,21 @@ p1 <- ggplot() +
                                 "medium fET",
                                 "low fET",
                                 "excluded")) +
-  scale_color_manual(values = c("high fET" = "#3A5ECC",
-                                "medium fET" = "#F6C59D", #"#f6c59d", #"#e2dd44",
-                                "low fET" = "#e55b39",
+  scale_color_manual(values = c("high fET" = "black",
+                                "medium fET" = "black", #"#f6c59d", #"#e2dd44",
+                                "low fET" = "black",
                                 "excluded" = "black"), #"#00FF01"
                      breaks = c("high fET", # control order in legend
                                 "medium fET",
                                 "low fET",
                                 "excluded")) +
-  # scale_fill_manual(values = c("high fET" = "#3A5ECC",
-  #                              "medium fET" = "#e5aa44",
-  #                              "low fET" = "#e55b39",
-  #                              "excluded" = "#00FF01"),
-  #                   breaks = c("high fET", # control order in legend
-  #                              "medium fET",
-  #                              "low fET",
-  #                              "excluded")) +
-  # scale_color_manual(values = c("EBF" = "#BEF268", "DBF" = "#A6CC5C", "MF" = "#218D22", "ENF" = "#006501",
-  #                              "WSA" = "#FE3130", "SAV" = "#8C1A1A", "CSH" = "#ff8300", "OSH" = "#cc4502",
-  #                              "GRA" = "#C3FFC2", "CRO" = "#f3f725", "WET" = "#01BFFE")) +
-
+  scale_fill_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39"),
+                    breaks = c("high fET", # control order in legend
+                               "medium fET",
+                               "low fET")) +
+  guides(fill=guide_legend(override.aes=list(shape=21))) +
   theme(
     legend.title=element_blank(),
     legend.text=element_text(color = "black", size=23, family = "Prata"),
@@ -127,11 +134,14 @@ p1 <- ggplot() +
     legend.position = c(.2, .2),
     legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
     plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'))
+
 p1
 ggsave("legend.png", path = "./", width = 11) # save this for the legend
 
 
+
 # inset on Europe
+sf_use_s2(FALSE)
 p2 <- p1 +
   coord_sf( # define area
     xlim = c(-5, 20),
@@ -143,6 +153,18 @@ p2 <- p1 +
         panel.border = element_rect(colour = "black", fill=NA, size=0.3)) # add border
 p2
 
+# inset on USA
+p4 <- p1 +
+  coord_sf( # define area
+    xlim = c(-125, -65),
+    ylim = c(24, 50),
+    expand = FALSE,
+    st_crs(4326)
+  ) +
+  theme(legend.position = "none",
+        panel.border = element_rect(colour = "black", fill=NA, size=0.3)) # add border
+p4
+
 # compose two maps
 p3 <- ggdraw(
   p1 +
@@ -150,12 +172,12 @@ p3 <- ggdraw(
   draw_plot(
     {p2},
     # The distance along a (0,1) x-axis to draw the left edge of the plot
-    x = 0,
+    x = -0.03,
     # The distance along a (0,1) y-axis to draw the bottom edge of the plot
-    y = 0.17,
+    y = 0.13,
     # The width and height of the plot expressed as proportion of the entire ggdraw object
-    width = 0.33,
-    height = 0.33)
+    width = 0.37,
+    height = 0.37)
 p3
 
 ggsave("beautiful_map.png", path = "./", width = 11)

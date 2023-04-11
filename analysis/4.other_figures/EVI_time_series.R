@@ -11,7 +11,7 @@ scatter_plots_all_selected <- scatter_plots_all %>%
   dplyr::select(date, name_site, pet_splash_coeff, NETRAD_mass_coeff)
 
 # define site to plot
-site1_name = "AU-Stp"
+site1_name = "AU-Cpr"
 
 #  Site 1 -----------------------------------------------------------------
 load(paste0("data/output/", site1_name, "/data_frames/out_", site1_name, ".RData")) # load output of ML model
@@ -57,7 +57,7 @@ site1 <- plottin %>%
   ungroup()
 
 # calculate coefficient to scale EVI and fvar in double axis (so that maxima of fvar and nn_pot are the same)
-coeff <- max(site1$fvar, na.rm = TRUE)/max(site1$nn_pot, na.rm = TRUE)
+coeff <- max(site1$fvar, na.rm = TRUE)/max(site1$obs, na.rm = TRUE)
 
 # long format
 df_site1 <- site1 %>%
@@ -79,7 +79,7 @@ grob_a <- grobTree(textGrob(site1_name, x=0.01,  y=0.95, hjust=0,
 
 # calculate maximum to set axis limit
 max_pot = df_site1 %>% dplyr::filter(names == "nn_pot") %>% pull(values) %>% max(na.rm = TRUE)
-max_pot = max_pot + 0.1*max_pot
+max_pot = max_pot + 0.1*max_pot # small buffer to plot nicely
 
 # plot
 a <- ggplot(data = df_site1) +
@@ -96,7 +96,7 @@ a <- ggplot(data = df_site1) +
   scale_y_continuous(
     name = expression(paste("ET (mm ", d^-1, ")")), # Features of the first axis
     limits = c(0,max_pot),
-    sec.axis = sec_axis(~.*coeff, name="fET and EVI (-)")  # Add a second axis and specify its features
+    sec.axis = sec_axis(~.*coeff, name="fET (-)")  # Add a second axis and specify its features
   ) +
   labs(
     x = "Month"
@@ -104,20 +104,20 @@ a <- ggplot(data = df_site1) +
   theme_classic() +
   scale_color_manual(  # set line colors
     values = c(obs = "#333333",
-               fvar_coeff = "#2353ce", # blue
+               fvar_coeff = "#BBCC33", # blue
                nn_pot = "#D81B60", # red
-               EVI_coeff = "#4aaf2b"), # green
+               nn_act = "#0072B2"),
     labels = c(obs = expression(paste(ET[obs])), # set labels for legend
                fvar_coeff = expression(paste(fET)),
                nn_pot = expression(paste(PET[NN])),
-               EVI_coeff = expression(paste(EVI))
+               nn_act = expression(paste(ET[NN]))
     )
   ) +
   scale_linetype_manual(  # set line types
     values = c(obs = "solid",
                fvar_coeff = "solid",
                nn_pot = "solid",
-               EVI_coeff = "solid"
+               nn_act = "solid"
     ),
     guide = "none" # hide legend for lines
   ) +

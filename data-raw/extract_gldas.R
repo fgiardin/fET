@@ -17,7 +17,6 @@ site_ID = args[1] # don't call 'sitename' as in other scripts, otherwise it will
                   # generate conflicts with the column 'sitename' of the
                   # siteinfo_fluxnet2015 dataframe
 
-
 devtools::load_all(".")
 library(bigleaf)
 library(tidyverse)
@@ -88,6 +87,9 @@ ddf_CWD_gldas <- mct(
 CWD_name = sprintf("%s/ddf_CWD_gldas_%s.RData", gldas_path, site_ID)
 save(ddf_CWD_gldas, file = CWD_name)
 
+save(ddf_CWD_gldas, file = "./ddf_CWD_gldas_US-SRG.RData") ### XXX delete me
+ddf_CWD_gldas <- ddf_CWD
+
 
 #### merge with fluxnet ddf ####
 # extract temperature from fluxnet (needed for further analysis) and retain the same
@@ -117,12 +119,15 @@ ddf_gldas <- df_gldas %>%
 
 # calculate fET
 ddf_gldas <- ddf_gldas %>%
+  dplyr::filter(PET > 0) %>% # remove Inf values for fET
+  dplyr::filter(ET > 0) %>%
   mutate(fvar = ET/PET)
 
 df_name = sprintf("%s/ddf_gldas_%s.RData", gldas_path, site_ID)
 save(ddf_gldas, file = df_name)
 
 
+save(ddf_gldas, file = "./ddf_gldas_US-SRG.RData") ### XXX delete me
 
 
 

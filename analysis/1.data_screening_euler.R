@@ -331,7 +331,6 @@ save(ddf, file = file2)
 # Visualize missing data
 library(visdat)
 ddf %>%
-  #slice(1:10000) %>%
   vis_miss(   # DON'T use sample_n with visdat, it shuffles the data randomly
     cluster = FALSE,
     sort_miss = TRUE
