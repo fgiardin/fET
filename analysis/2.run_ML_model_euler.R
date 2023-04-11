@@ -33,6 +33,7 @@ library(LSD)
 for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor")){
   sitename = i
   print(i)
+
 # create directory for results
 dir_name = sprintf("data/output/%s", sitename) # path to directory of site (gia creata in pre_process)
 data_frames_path = sprintf("%s/data_frames", dir_name) # path to dir of dataframes (gia creata)
@@ -435,9 +436,7 @@ title(main = title, xlab = "Big instances CWD (mm)", ylab = "normalized EF")
 #mtext(side=0.5, line=6, at=1, adj=0, cex=0.7, col = 'black', subtitle)
 box()
 dev.off()
-
-
-
+}
 
 
 
