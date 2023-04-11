@@ -32,7 +32,7 @@ library(LSD)
 
 for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor")){
   sitename = i
-
+  print(i)
 # create directory for results
 dir_name = sprintf("data/output/%s", sitename) # path to directory of site (gia creata in pre_process)
 data_frames_path = sprintf("%s/data_frames", dir_name) # path to dir of dataframes (gia creata)
@@ -436,22 +436,7 @@ title(main = title, xlab = "Big instances CWD (mm)", ylab = "normalized EF")
 box()
 dev.off()
 
-##### BILINEAR REGRESSION #####
-print("BILINEAR REGRESSION")
-library(segmented)
-#put data in right format for calc_cwd function
-ddf_CWD_fvar <- ddf_CWD$df %>%
-  left_join(out$df_all %>% dplyr::select(fvar,date), by = "date")
 
-segmented <- fvar::calc_cwd_lue0(ddf_CWD_fvar, ddf_CWD$inst, "fvar", do_plot = TRUE)
-file = sprintf("%s/segmented_%s.RData", data_frames_path, sitename)
-save(segmented, file = file)
-
-segmented$gg +
-  labs(title = sprintf("%s, Number of breakpoints = %d", sitename, segmented$num_splits)) +
-  ylab("fET")
-ggsave("fET_vs_CWD_bilinear.png", path = results_path, width = 4, height = 4)
-}
 
 
 
