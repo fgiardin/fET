@@ -30,14 +30,17 @@ library(ggpointdensity)
 library(viridis)
 library(LSD)
 
-for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS")){
+#flag for fT
+transpiration = 1
+
+for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor")){
   sitename = i
   print(i)
 
 # create directory for results
 dir_name = sprintf("data/output/%s", sitename) # path to directory of site (gia creata in pre_process)
 data_frames_path = sprintf("%s/data_frames", dir_name) # path to dir of dataframes (gia creata)
-results_path = sprintf("%s/results/transpiration", dir_name)
+results_path = sprintf("%s/results", dir_name)
 
 # create results path
 dir.create(dir_name)
@@ -45,22 +48,26 @@ dir.create(results_path)
 dir.create(data_frames_path)
 
 # load dataframes
-# CWD + DDF + transpiration
+# CWD + DDF
 CWD_name = sprintf("%s/data_frames/ddf_CWD_%s.RData", dir_name, sitename)
-# ddf_name = sprintf("%s/data_frames/ddf_%s.RData", dir_name, sitename)
-ddf_T_name = sprintf("%s/data_frames/ddf_T_%s.RData", dir_name, sitename)
+ddf_name = sprintf("%s/data_frames/ddf_%s.RData", dir_name, sitename)
 load(CWD_name)
-# load(ddf_name)
+load(ddf_name)
+
+# transpiration
+if (transpiration) {
+ddf_T_name = sprintf("%s/data_frames/ddf_T_%s.RData", dir_name, sitename)
 load(ddf_T_name)
 ddf <- ddf_T %>%
-  dplyr::filter(T > 0)
+  dplyr::filter(T > 0.01)
+}
 
 
 ### DEFINE SETTINGS, FIND THRESHOLD AND RUN MODEL ######################
 
 # define settings
 settings <- list(
-  target         = "T",
+  target         = "ET",
   predictors = c("NETRAD","VPD_F", "TA_F", "EVI"),
   varnams_soilm  = "SWC_F_MDS_1",
   rowid          = "date",
@@ -78,6 +85,28 @@ settings <- list(
   learning_rate       = 0.01,
   num_layers          = 2 # number of hidden layers (only for keras)
 )
+
+if (transpiration) {
+  settings <- list(
+    target         = "T",
+    predictors = c("NETRAD","VPD_F", "TA_F", "EVI"),
+    varnams_soilm  = "SWC_F_MDS_1",
+    rowid          = "date",
+    threshold      = 0.5, # provisional soil moisture threshold
+    package        = "keras", # "nnet" or "keras". nnet builds a single-layer neural networks
+    print_model_summary = TRUE,
+    nrep          = 5,
+    nfolds        = 5, # number of cross-validation folds
+    num_units_per_layer = c(8, 8, 8, 8, 8), #number of nodes per layer
+    #for nnet: only first element of the vector is relevant
+    ## KERAS specific settings (useless with nnet)
+    batch_size          = 64,
+    num_epochs          = 30,
+    val_size            = 0.25,
+    learning_rate       = 0.01,
+    num_layers          = 2 # number of hidden layers (only for keras)
+  )
+}
 
 
 # USE MODELLED Soil Moisture IF SWC IS NOT CONSISTENT

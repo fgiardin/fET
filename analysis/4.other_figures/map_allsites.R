@@ -11,6 +11,12 @@ library(cowplot)
 library(ingestr)
 library(terra)
 
+# map of root zone water storage capacity
+# from Stocker et al., 2023. Downloaded from: https://zenodo.org/record/5515246
+s0 <- rast("~/data/S0-beni-natgeo2023/cwdx80.nc")
+df_s0 <- terra::as.data.frame(s0, xy = TRUE)
+df_s0 <- st_as_sf(df_s0, coords = c("x", "y"), crs = 4326) # first put points in standard projection WGS84
+
 # custom fonts
 library(showtext)
 font_add_google("Prata", regular.wt = 400)
@@ -75,6 +81,7 @@ bb_robinson <- st_transform(bb, as.character(robinson))
 # put points in right projection
 points <- st_as_sf(table1_merged, coords = c("lon", "lat"), crs = 4326) # first put points in standard projection WGS84
 points <- st_transform(points, crs = robinson) # then trasform to Robinson
+df_s0 <- st_transform(df_s0, crs = robinson)
 
 crop <- data.frame(
   c(-180, 180),
@@ -127,6 +134,10 @@ p1 <- ggplot() +
                     breaks = c("high fET", # control order in legend
                                "medium fET",
                                "low fET")) +
+  geom_sf(data = df_s0, # add EC sites
+          size=0.1,
+          aes(color = factor(cwdx80)),
+          key_glyph = "rect") +
   guides(fill=guide_legend(override.aes=list(shape=21))) +
   theme(
     legend.title=element_blank(),
