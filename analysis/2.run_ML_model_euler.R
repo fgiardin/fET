@@ -33,7 +33,7 @@ library(LSD)
 #flag for fT
 transpiration = 1
 
-for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor")){
+for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS")){
   sitename = i
   print(i)
 
@@ -56,18 +56,17 @@ load(ddf_name)
 
 # transpiration
 if (transpiration) {
-ddf_T_name = sprintf("%s/data_frames/ddf_T_%s.RData", dir_name, sitename)
-load(ddf_T_name)
-ddf <- ddf_T %>%
-  dplyr::filter(T > 0.01)
-}
+  ddf_T_name = sprintf("%s/data_frames/ddf_T_%s.RData", dir_name, sitename)
+  load(ddf_T_name)
+  ddf <- ddf_T
+  }
 
 
 ### DEFINE SETTINGS, FIND THRESHOLD AND RUN MODEL ######################
 
 # define settings
 settings <- list(
-  target         = "ET",
+  target         = "T",
   predictors = c("NETRAD","VPD_F", "TA_F", "EVI"),
   varnams_soilm  = "SWC_F_MDS_1",
   rowid          = "date",

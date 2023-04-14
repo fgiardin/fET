@@ -1,10 +1,13 @@
 # read Transpiration datasets and put in right format for ML model
 
+devtools::load_all(".")
 library(tidyverse)
 library(data.table)
 library(lubridate)
+library(bigleaf)
+library(LSD)
 
-sitename = "FR-Pue" # available for "US-Ton", "IT-Cpz", "AU-How", "DK-Sor"
+sitename = "US-MMS" # available for "US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS"
 
 # load transpiration
 raw_data <- fread(sprintf("data/Transpiration/%s.csv", sitename))
@@ -28,10 +31,8 @@ load(ddf_name)
 load(hhdf_name)
 
 # merge transpiration
-ddf_T <- hhdf %>%
-  rename(date_end = date) %>%
-  rename(date = TIMESTAMP_START) %>%
-  left_join(df_T, by = "date") %>%
+ddf_T <- df_T %>%
+  dplyr::filter(T > 0.001) %>%
   dplyr::select(date, T) %>%
   mutate(date = lubridate::date(date)) %>%
   group_by(date) %>%
@@ -41,6 +42,10 @@ ddf_T <- hhdf %>%
 # join back to daily df
 ddf_T <- ddf %>%
   left_join(ddf_T, by = "date")
+
+# check agreement between T and ET
+file = "./scatter_ET-T.png"
+scatterheat(ddf_T, "ET", "T", "Agreement T-ET", file)
 
 # save
 file1 = sprintf("data/output/%s/data_frames/ddf_T_%s.RData", sitename, sitename)

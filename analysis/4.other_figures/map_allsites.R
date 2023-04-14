@@ -11,6 +11,7 @@ library(cowplot)
 library(ingestr)
 library(terra)
 
+
 # map of root zone water storage capacity
 # from Stocker et al., 2023. Downloaded from: https://zenodo.org/record/5515246
 s0 <- rast("~/data/S0-beni-natgeo2023/cwdx80.nc")
