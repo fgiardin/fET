@@ -391,8 +391,8 @@ title = sprintf("%s, N = %d", sitename, rows)
 file = sprintf("%s/fET_vs_CWD_density_biginstances.png", results_path)
 png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
 plot.new()
-# plot.window(xlim = c(0,300),
-#             ylim = c(0,1.5))
+plot.window(xlim = c(0,300),
+            ylim = c(0,1.5))
 plot.window(xlim = c(min(ddf_plot_biginstances$deficit, na.rm=TRUE),max(ddf_plot_biginstances$deficit, na.rm=TRUE)),
             ylim = c(0,1.5))
 heatscatterpoints(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar)
