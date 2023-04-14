@@ -156,7 +156,7 @@ soil_usability_filtered <- soil_usability %>%
   dplyr::filter(code != 1) # only retain sites where we need to use modelled SM
 
 # load current list of final sites
-load("manuscript/Figures/dataframes/vec_sites.RData")
+load("data/dataframes/vec_sites.RData")
 
 # intersection of all sites that have modelled SM with final list of sites
 mysites_withmodelledSM <- intersect(soil_usability_filtered$mysitename,vec_sites)
