@@ -31,7 +31,7 @@ library(viridis)
 library(LSD)
 
 #flag for fT
-transpiration = 1 # available only for: "US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var"
+transpiration = 0 # available only for: "US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var"
 
 for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var")){
   sitename = i

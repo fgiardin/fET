@@ -1,3 +1,5 @@
+# script to plot timeseries of ET
+
 # load libraries
 library(tidyverse)
 library(lubridate)
