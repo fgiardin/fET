@@ -10,7 +10,7 @@ library(LSD)
 sitename = "US-MMS" # available for "US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS"
 
 # load transpiration
-raw_data <- fread(sprintf("data/Transpiration/%s.csv", sitename))
+raw_data <- fread(sprintf("data-raw/Transpiration/%s.csv", sitename))
 
 # adjust date
 raw_data$date <- date_decimal(raw_data$year_dec, tz = "UTC") %>%
