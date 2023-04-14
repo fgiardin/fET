@@ -7,7 +7,7 @@ library(lubridate)
 library(bigleaf)
 library(LSD)
 
-sitename = "US-MMS" # available for "US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS"
+sitename = "US-Var" # available for "US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var"
 
 # load transpiration
 raw_data <- fread(sprintf("data-raw/Transpiration/%s.csv", sitename))
