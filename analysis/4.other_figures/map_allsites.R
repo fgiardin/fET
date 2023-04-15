@@ -149,7 +149,7 @@ ocean_robinson <- ocean %>%
 
 # put points in right projection
 points <- st_as_sf(table1_merged, coords = c("lon", "lat"), crs = 4326) # first put points in standard projection WGS84
-points <- st_transform(points, crs = robinson) # then trasform to Robinson
+points_robinson <- st_transform(points, crs = robinson) # then trasform to Robinson
 
 df_plot <- df %>%
   drop_na() %>%
@@ -186,7 +186,7 @@ p1 <- ggplot() +
   geom_sf(data=ocean_robinson,
           colour='grey23',
           linetype='solid',
-          fill = "lightblue1", # "lightblue"
+          fill = "white", # "lightblue" "
           size=0.2) +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
@@ -194,8 +194,8 @@ p1 <- ggplot() +
           fill = NA, # "lightblue", #"grey75",#"#D6D6E9",
           size=0.1) +
   new_scale_color() + # add new color scales for map
-  geom_sf(data = points, # add EC sites
-          size=1.7,
+  geom_sf(data = points_robinson, # add EC sites
+          size=2,
           aes(color = factor(cluster), shape = factor(cluster), fill = factor(cluster))) +
   scale_shape_manual(values = c("high fET" = 21,
                                 "medium fET" = 21,
@@ -227,11 +227,12 @@ p1 <- ggplot() +
     legend.position = c(.2, .2),
     legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
     plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'))
-p1
 ggsave("legend.png", path = "./", width = 11) # save this for the legend
 
+
 # inset on Europe
-p2 <- p1 +
+p2 <- ggplot() +
+  theme_void() +
   coord_sf( # define area
     xlim = c(-5, 20),
     ylim = c(36, 58),
@@ -239,7 +240,63 @@ p2 <- p1 +
     st_crs(4326)
   ) +
   theme(legend.position = "none",
-        panel.border = element_rect(colour = "black", fill=NA, size=0.3)) # add border
+        panel.border = element_rect(colour = "black", fill=NA, size=0.3)) + # add border
+  geom_tile(
+    data = df %>%
+      dplyr::filter(lon > -5,
+                    lon < 20,
+                    lat > 36,
+                    lat < 58),
+    aes(x = lon, y = lat, fill = layercut, color = layercut),
+    show.legend = FALSE
+  ) +
+  scale_fill_manual(values = colorscale, na.value = "#7F7F7F") +
+  scale_color_manual(values = colorscale, na.value = "#7F7F7F") +
+  geom_sf(data=ocean,
+          colour='grey23',
+          linetype='solid',
+          fill = "white", # "lightblue" "
+          size=0.2) +
+  new_scale_color() + # add new color scales for map
+  geom_sf(data = points, # add EC sites
+          size=2,
+          aes(color = factor(cluster), shape = factor(cluster), fill = factor(cluster))) +
+  coord_sf( # cut back to area
+    xlim = c(-5, 20),
+    ylim = c(36, 58),
+    expand = FALSE,
+    st_crs(4326)
+  ) +
+  scale_shape_manual(values = c("high fET" = 21,
+                                "medium fET" = 21,
+                                "low fET" = 21,
+                                "excluded" = 4),
+                     breaks = c("high fET",
+                                "medium fET",
+                                "low fET",
+                                "excluded")) +
+  scale_color_manual(values = c("high fET" = "black",
+                                "medium fET" = "black", #"#f6c59d", #"#e2dd44",
+                                "low fET" = "black",
+                                "excluded" = "white"), #"#00FF01"
+                     breaks = c("high fET", # control order in legend
+                                "medium fET",
+                                "low fET",
+                                "excluded")) +
+  scale_fill_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39"),
+                    breaks = c("high fET", # control order in legend
+                               "medium fET",
+                               "low fET")) +
+  guides(fill=guide_legend(override.aes=list(shape=21))) +
+  theme(
+    legend.title=element_blank(),
+    legend.text=element_text(color = "black", size=23, family = "Prata"),
+    legend.background = element_rect(fill="grey70", color = NA),
+    legend.position = "none",
+    legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
+    plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'))
 
 # # inset on USA
 # p4 <- p1 +
@@ -285,7 +342,7 @@ cowplot::plot_grid(p3, gglegend, nrow = 2, rel_heights = c(1, 0.2))
 
 ggsave("beautiful_map.png", path = "./", width = 11)
 
-  # save legend separately (for CWD label)
+# save legend separately (for CWD label)
 gglegend <- plot_discrete_cbar(
   breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides the color bar
   colors           = colorscale,
