@@ -23,14 +23,14 @@ showtext_auto()
 
 # define extent of the map
 latmin <- -60
-latmax <- 80
+latmax <- 88
 lonmin <- -179.999
 lonmax <- 179.999
 
 # CWDX80 data -------------------------------------------------------------
 
 # read the data
-df <- nc_to_df("data-raw/CWDX80/cwdx80_halfdeg.nc", varnam = "cwdx80") |>
+df <- nc_to_df("data-raw/CWDX80/cwdx80_tenthdeg.nc", varnam = "cwdx80") |>
   mutate(lon = round(lon, digits = 2), lat = round(lat, digits = 2))
 
 ## Define bins of color scale
@@ -137,7 +137,7 @@ coast_robinson <- coast %>%
 
 # download ocean outlines
 ocean <- ne_download(
-  scale = 50,
+  scale = 10,
   type = "ocean",
   category = "physical",
   returnclass = "sf")
@@ -153,12 +153,15 @@ points <- st_transform(points, crs = robinson) # then trasform to Robinson
 
 df_plot <- df %>%
   drop_na() %>%
-  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>%
-  st_transform(crs = robinson)
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% # convert to robinson projection
+  st_transform(crs = robinson) %>%
+  dplyr::mutate(lon = sf::st_coordinates(.)[,1], # convert back to df for plotting
+                lat = sf::st_coordinates(.)[,2])
 
-land = lengths(st_intersects(df_plot, ocean_robinson)) > 0 # force intersection between points and USA borders
-df_plot <- df_plot %>%
-  dplyr::filter(land)
+
+# land = lengths(st_intersects(df_plot, ocean_robinson)) > 0 # force intersection between points and USA borders
+# df_plot <- df_plot %>%
+#   dplyr::filter(land)
 
 # map ---------------------------------------------------------------------
 
@@ -169,16 +172,21 @@ p1 <- ggplot() +
           linetype='solid',
           fill = "#7F7F7F", # "lightblue", #"grey75",#"#D6D6E9",
           size=0.1) +
-  geom_sf(data = df_plot,
-          size=0.1,
-          aes(fill = layercut, color = layercut),
-          show.legend = FALSE) +
+  # geom_sf(data = df_plot,
+  #         # size=0.1,
+  #         aes(fill = layercut, color = layercut),
+  #         show.legend = FALSE) +
+  geom_tile(
+    data = df_plot,
+    aes(x = lon, y = lat, fill = layercut, color = layercut),
+    show.legend = FALSE
+  ) +
   scale_fill_manual(values = colorscale) +
   scale_color_manual(values = colorscale) +
   geom_sf(data=ocean_robinson,
           colour='grey23',
           linetype='solid',
-          fill = "lightblue", # "lightblue"
+          fill = "lightblue1", # "lightblue"
           size=0.2) +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
@@ -187,7 +195,7 @@ p1 <- ggplot() +
           size=0.1) +
   new_scale_color() + # add new color scales for map
   geom_sf(data = points, # add EC sites
-          size=1.6,
+          size=1.7,
           aes(color = factor(cluster), shape = factor(cluster), fill = factor(cluster))) +
   scale_shape_manual(values = c("high fET" = 21,
                                 "medium fET" = 21,
@@ -215,7 +223,7 @@ p1 <- ggplot() +
   theme(
     legend.title=element_blank(),
     legend.text=element_text(color = "black", size=23, family = "Prata"),
-    legend.background = element_rect(fill="#7F7F7F", color = NA),
+    legend.background = element_rect(fill="grey70", color = NA),
     legend.position = c(.2, .2),
     legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
     plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'))
@@ -254,7 +262,7 @@ p3 <- ggdraw(
     # The distance along a (0,1) x-axis to draw the left edge of the plot
     x = -0.03,
     # The distance along a (0,1) y-axis to draw the bottom edge of the plot
-    y = 0.13,
+    y = 0.12,
     # The width and height of the plot expressed as proportion of the entire ggdraw object
     width = 0.37,
     height = 0.37)
@@ -267,19 +275,17 @@ gglegend <- plot_discrete_cbar(
   legend_direction = "horizontal",
   spacing = "constant",
   expand_size_y = 0.4,
-  width = 0.06,
+  width = 0.04,
   font_size = 11,  # of color key labels
-  triangle_size = 0.1,
+  triangle_size = 0.08,
 )
-gglegend
-ggsave("legend_CWD.png", path = "./", width = 11)
 
 ## Combine map and legend with cowplot
 cowplot::plot_grid(p3, gglegend, nrow = 2, rel_heights = c(1, 0.2))
 
 ggsave("beautiful_map.png", path = "./", width = 11)
 
-# save legend separately
+  # save legend separately (for CWD label)
 gglegend <- plot_discrete_cbar(
   breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides the color bar
   colors           = colorscale,
