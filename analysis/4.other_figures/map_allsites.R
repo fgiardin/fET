@@ -11,6 +11,20 @@ library(cowplot)
 library(ingestr)
 library(terra)
 
+sf_use_s2(FALSE)
+
+# custom fonts
+library(showtext)
+font_add_google("Prata", regular.wt = 400)
+showtext_auto()
+
+# define extent of the map
+latmin <- -60
+latmax <- 87
+lonmin <- -179.999
+lonmax <- 179.999
+
+# CWDX80 data -------------------------------------------------------------
 
 # map of root zone water storage capacity
 # from Stocker et al., 2023. Downloaded from: https://zenodo.org/record/5515246
@@ -18,10 +32,10 @@ s0 <- rast("~/data/S0-beni-natgeo2023/cwdx80.nc")
 df_s0 <- terra::as.data.frame(s0, xy = TRUE)
 df_s0 <- st_as_sf(df_s0, coords = c("x", "y"), crs = 4326) # first put points in standard projection WGS84
 
-# custom fonts
-library(showtext)
-font_add_google("Prata", regular.wt = 400)
-showtext_auto()
+
+
+
+# fET points data  --------------------------------------------------------
 
 # load table with all data from analysis
 table1_final <- readRDS("data/table1_final.rds")
@@ -50,68 +64,58 @@ table1_merged$cluster <- as.character(table1_merged$cluster) %>% # convert to ch
 # set robinson projection
 robinson <- CRS("+proj=robin +over")
 
-# download countries
-countries <- ne_countries(scale = 50, returnclass = c("sf"))
-
-# transform the coastline to robinson
-countries_robinson <- st_transform(countries, robinson)
-
-# download ocean outlines
-ocean <- ne_download(
-  scale = 50,
-  type = "ocean",
-  category = "physical",
-  returnclass = "sf")
-ocean_robinson <- st_transform(ocean, robinson)
-
 # create a bounding box for the robinson projection
 # we'll use this as "trim" to remove jagged edges at
 # end of the map (due to the curved nature of the
 # robinson projection)
-bb <- sf::st_union(
-  sf::st_make_grid(
-    st_bbox(
-      c(xmin = -180,
-        xmax = 180,
-        ymax = 90,
-        ymin = -90),
-      crs = st_crs(4326)),
-    n = 100))
+bb <- sf::st_union(sf::st_make_grid(
+  st_bbox(c(xmin = lonmin,
+            xmax = lonmax,
+            ymax = latmax,
+            ymin = latmin), crs = st_crs(4326)),
+  n = 100))
 bb_robinson <- st_transform(bb, as.character(robinson))
+
+
+## read 110 m resolution coastline from NaturalEarth data
+coast <- ne_coastline(scale = 110, returnclass = "sf")
+coast_robinson <- coast %>%
+  st_buffer(0) %>%
+  st_intersection(st_union(bb)) %>% # cut to match bb
+  st_transform(as.character(robinson)) # transform to robinson
+
+# # download ocean outlines
+# ocean <- ne_download(
+#   scale = 110,
+#   type = "ocean",
+#   category = "physical",
+#   returnclass = "sf")
+# ocean_robinson <- ocean %>%
+#   st_buffer(0) %>%
+#   st_intersection(st_union(bb)) %>% # cut to match bb
+#   st_transform(robinson)
+
 
 # put points in right projection
 points <- st_as_sf(table1_merged, coords = c("lon", "lat"), crs = 4326) # first put points in standard projection WGS84
 points <- st_transform(points, crs = robinson) # then trasform to Robinson
-df_s0 <- st_transform(df_s0, crs = robinson)
-
-crop <- data.frame(
-  c(-180, 180),
-  c(-60, 88))
-names(crop) <- c("lon", "lat")
-crop <- st_as_sf(crop, coords = c("lon", "lat"), crs = 4326)
-crop <- st_transform(crop, crs = robinson)
-
 
 
 # map
 p1 <- ggplot() +
+  theme_void() +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
           linetype='solid',
           fill = "white", # "lightblue", #"grey75",#"#D6D6E9",
           size=0.1) +
-  # geom_sf(data=countries_robinson, # country borders
-  #         color= "grey23",
-  #         linetype='solid',
-  #         fill= "white",#cad6df", #D6D6E9
-  #         size=0.3) +
-  geom_sf(data = ocean_robinson, # add oceans
-          color = "grey23",
+  geom_sf(data=ocean_robinson,
+          colour='grey23',
+          linetype='solid',
           fill = "lightblue",
-          size = 0.2) +
-  theme_void() +
+          size=0.2) +
   geom_sf(data = points, # add EC sites
-          size=2,
+          size=1.6,
           aes(color = factor(cluster), shape = factor(cluster), fill = factor(cluster))) +
   scale_shape_manual(values = c("high fET" = 21,
                                 "medium fET" = 21,
@@ -135,10 +139,6 @@ p1 <- ggplot() +
                     breaks = c("high fET", # control order in legend
                                "medium fET",
                                "low fET")) +
-  geom_sf(data = df_s0, # add EC sites
-          size=0.1,
-          aes(color = factor(cwdx80)),
-          key_glyph = "rect") +
   guides(fill=guide_legend(override.aes=list(shape=21))) +
   theme(
     legend.title=element_blank(),
@@ -147,14 +147,12 @@ p1 <- ggplot() +
     legend.position = c(.2, .2),
     legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
     plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'))
-
 p1
 ggsave("legend.png", path = "./", width = 11) # save this for the legend
 
 
 
 # inset on Europe
-sf_use_s2(FALSE)
 p2 <- p1 +
   coord_sf( # define area
     xlim = c(-5, 20),
