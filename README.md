@@ -1,10 +1,14 @@
 For full details on the methodology and results please refer to the above manuscript folder. For a step-by-step guide on how to reproduce the analysis, refer to the 'Instructions' below. All code is licensed under a AGPL-v3 open license, while the manuscript and data is licensed as CC-BY. Consult the individual directories and their LICENSE file. Please be mindful of the license restrictions, as they will be enforced.
 
+![Fig. 1 Location of sites considered in this study, colored by their respective group of fractional reduction in evapotranspiration (fET group, see section 2.5). Blue dots: 'high fET' group. Yellow dots: 'medium fET' group. Red dots: 'low fET' group. White crosses: sites that were excluded from the initial list of 135 sites considered in this study. Colors of land areas represent the annual maximum cumulative water deficit with a return period of 80 years (CWDX80), a proxy for the rooting-zone water-storage capacity (S0), from (Stocker et al., 2023). Coastlines were downloaded using R package 'rnaturalearth' (Massicotte & South, 2023).](manuscript/Figures/Fig1_map/beautiful_map.png)
 
 # Diagnosing evapotranspiration responses to water deficit across biomes using deep learning
 •	Accounting for water limitation is key to determining vegetation sensitivity to drought. Quantifying water limitation effects on ET is challenged by the heterogeneity of vegetation types, climate zones and vertically along the rooting zone. 
+
 •	Here, we train deep neural networks using flux measurements to study ET responses to progressing drought conditions. We determine a water stress factor (fET) that isolates ET reductions from effects by atmospheric aridity and other co-varying drivers. We regress fET against the cumulative water deficit (CWD), which reveals the control of whole-column moisture availability. 
+
 •	We find a variety of ET responses to water stress. Responses range from rapid declines of fET to 10% of its water-unlimited rate at several savannah and grassland sites, to mild fET reductions in most forests, despite substantial water deficits. Most sensitive responses are found at the most arid and warm sites.
+
 •	A combination of regulation of stomatal and hydraulic conductance and access to belowground water reservoirs, whether in groundwater or deep soil moisture, could explain the different behaviors observed at some sites. This variety of responses is not captured by a state-of-the-art land surface model, likely reflecting simplifications in its representation of belowground water storage. 
 
 # Instructions
