@@ -452,7 +452,7 @@ a <- a +
     axis.text=element_text(size = 14),
     axis.title=element_text(size = 16),
     legend.text=element_text(size=14),
-    plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
+    plot.title = element_text(hjust = 0.5, size = 16), # center title
     plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) + # 'expand' # removes space between axis and plotted data (!!!)

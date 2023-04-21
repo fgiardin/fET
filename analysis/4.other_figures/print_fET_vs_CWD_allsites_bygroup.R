@@ -42,15 +42,17 @@ plot_allsites_fvar <- plot_allsites_fvar %>%
 # remove outliers and scale EVI (not working really well)
 plot_allsites_EVI_raw <- plot_allsites_fvar %>%
   group_by(name_site) %>%
-  #questa normalizzazione non cambia niente se plotto in second axis
+  # # in the end we do not normalize EVI (too noisy, it becomes even more) + you can see the decline even without normalization
+  # mutate(
+  #   EVI_scaled = EVI / median(EVI[deficit < 20])) %>% # take the median of the lower bin of the deficit
   mutate(
-    EVI_scaled = EVI / median(EVI[deficit < 20])) %>% # take the median of the lower bin of the deficit
-  # filter(between(EVI_scaled,
-  #                mean(EVI_scaled, na.rm=TRUE) - (2.5 * sd(EVI_scaled, na.rm=TRUE)), # remove outliers by site
-  #                mean(EVI_scaled, na.rm=TRUE) + (2.5 * sd(EVI_scaled, na.rm=TRUE)))) %>%
+    EVI_scaled = EVI) %>%
+  filter(between(EVI_scaled,
+                 mean(EVI_scaled, na.rm=TRUE) - (2.5 * sd(EVI_scaled, na.rm=TRUE)), # remove outliers by site
+                 mean(EVI_scaled, na.rm=TRUE) + (2.5 * sd(EVI_scaled, na.rm=TRUE)))) %>%
   mutate(bin = as.numeric(cut_number(deficit,{n()/50}))) %>% # dynamic number of bins: equal to
                                                                  # number of rows per PFT divided by 40
-                                                                 # aka at least 40 points per bin
+                                                                 # aka at least 50 points per bin
   ungroup()
 
 # calculate quartiles and median in every bin
@@ -79,16 +81,15 @@ for (i in 1:length(high_fET)){
   df <- plot_allsites_EVI %>% dplyr::filter(name_site == site)
   a <- heatscatter(x=df$deficit, y = df$fvar, ggplot = TRUE)
   a$data$name_site = df$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
-  a <- a + labs(y = "fET (-)",
+  a <- a + labs(y = "Unitless",
                 x = "CWD (mm)",
                 title = site) +
     geom_ribbon(data = df, aes(x = medianCWD, ymin = perc_25, ymax = perc_75), fill = "#0CFA07", alpha=0.3) +
-    geom_line(data = df, aes(x = medianCWD, y = perc_50), color="#0CFA07", alpha=0.95, size = 1) +
+    geom_line(data = df, aes(x = medianCWD, y = perc_50), color="#0CFA07", alpha=0.9, size = 1) +
     theme_classic() +
     theme(
-      axis.text=element_text(size = 17),
-      axis.title=element_text(size = 19),
-      strip.text = element_text(size=17), # plot title
+      axis.text=element_text(size = 14),
+      axis.title=element_text(size = 17),
       plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
     ) +
     scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0)) +
@@ -142,45 +143,30 @@ ggsave("facet_highET.png",
        height = 10,
 )
 
-
-
 ### MEDIUM ET ####
 # get a list of medium ET sites and plot them individually
-df <- plot_allsites_fvar %>% dplyr::filter(cluster == "medium fET")
+df <- plot_allsites_EVI %>% dplyr::filter(cluster == "medium fET")
 medium_fET <- unique(df$name_site) # list of sites within fET group
 results_mediumET <- list() # initialize list to save plots
 
-# df <- plot_allsites_fvar %>% dplyr::filter(name_site == site)
-
 for (i in 1:length(medium_fET)){
-  # define site i
   site <- medium_fET[i]
 
-  df_EVI <- plot_allsites_EVI %>% dplyr::filter(name_site == site)
-
-  # # calculate coefficient to scale two variables for visual comparison (so that maxima match)
-  # coeff <- max(df_EVI$EVI_scaled, na.rm = TRUE)/max(df$fvar, na.rm = TRUE)
-
-  # plot
-  b <- heatscatter(x=df_EVI$deficit, y = df_EVI$fvar, ggplot = TRUE)
-  b$data$name_site = df_EVI$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
-
-  a <- b + labs(y = "fET (-)",
+  df <- plot_allsites_EVI %>% dplyr::filter(name_site == site)
+  a <- heatscatter(x=df$deficit, y = df$fvar, ggplot = TRUE)
+  a$data$name_site = df$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
+  a <- a + labs(y = "Unitless",
                 x = "CWD (mm)",
                 title = site) +
+    geom_ribbon(data = df, aes(x = medianCWD, ymin = perc_25, ymax = perc_75), fill = "#0CFA07", alpha=0.3) +
+    geom_line(data = df, aes(x = medianCWD, y = perc_50), color="#0CFA07", alpha=0.9, size = 1) +
     theme_classic() +
-    geom_ribbon(data = df_EVI, aes(x = medianCWD, ymin = perc_25, ymax = perc_75), fill = "#0CFA07", alpha=0.3) +
-    geom_line(data = df_EVI, aes(x = medianCWD, y = perc_50), color="#0CFA07", alpha=0.95, size = 1) +
     theme(
-      axis.text=element_text(size = 17),
-      axis.title=element_text(size = 19),
-      strip.text = element_text(size=17), # plot title
+      axis.text=element_text(size = 14),
+      axis.title=element_text(size = 17),
       plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
     ) +
-    scale_y_continuous(
-      breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0)
-      # sec.axis = sec_axis(~.*coeff, name="EVI (-)") # Add a second axis and specify its features
-    )
+    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0)) +
     scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 325), expand = c(0, 0))
   a
 
@@ -194,41 +180,41 @@ for (i in 1:length(medium_fET)){
   axis.ticks.y = element_blank(),
   axis.title.y = element_blank())
 
-remove_x <- theme(
-  axis.text.x = element_blank(),
-  axis.ticks.x = element_blank(),
-  axis.title.x = element_blank())
+  remove_x <- theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank())
 
-remove_x2 <- theme(
-  axis.title.x = element_blank())
+  remove_x2 <- theme(
+    axis.title.x = element_blank())
 
-results_mediumET[[1]] <- results_mediumET[[1]] + remove_x
-results_mediumET[[2]] <- results_mediumET[[2]] + remove_x + remove_y
-results_mediumET[[3]] <- results_mediumET[[3]] + remove_x + remove_y
-results_mediumET[[4]] <- results_mediumET[[4]] + remove_x + remove_y
+  results_mediumET[[1]] <- results_mediumET[[1]] + remove_x
+  results_mediumET[[2]] <- results_mediumET[[2]] + remove_x + remove_y
+  results_mediumET[[3]] <- results_mediumET[[3]] + remove_x + remove_y
+  results_mediumET[[4]] <- results_mediumET[[4]] + remove_x + remove_y
 
-results_mediumET[[5]] <- results_mediumET[[5]] + remove_x
-results_mediumET[[6]] <- results_mediumET[[6]] + remove_x + remove_y
-results_mediumET[[7]] <- results_mediumET[[7]] + remove_x + remove_y
-results_mediumET[[8]] <- results_mediumET[[8]] + remove_x + remove_y
+  results_mediumET[[5]] <- results_mediumET[[5]] + remove_x
+  results_mediumET[[6]] <- results_mediumET[[6]] + remove_x + remove_y
+  results_mediumET[[7]] <- results_mediumET[[7]] + remove_x + remove_y
+  results_mediumET[[8]] <- results_mediumET[[8]] + remove_x + remove_y
 
-results_mediumET[[9]] <- results_mediumET[[9]] + remove_x
-results_mediumET[[10]] <- results_mediumET[[10]] + remove_x + remove_y
-results_mediumET[[11]] <- results_mediumET[[11]] + remove_x + remove_y
-results_mediumET[[12]] <- results_mediumET[[12]] + remove_x + remove_y
+  results_mediumET[[9]] <- results_mediumET[[9]] + remove_x
+  results_mediumET[[10]] <- results_mediumET[[10]] + remove_x + remove_y
+  results_mediumET[[11]] <- results_mediumET[[11]] + remove_x + remove_y
+  results_mediumET[[12]] <- results_mediumET[[12]] + remove_x + remove_y
 
-results_mediumET[[13]] <- results_mediumET[[13]] + remove_x
-results_mediumET[[14]] <- results_mediumET[[14]] + remove_x + remove_y
-results_mediumET[[15]] <- results_mediumET[[15]] + remove_x + remove_y
-results_mediumET[[16]] <- results_mediumET[[16]] + remove_x + remove_y
+  results_mediumET[[13]] <- results_mediumET[[13]] + remove_x
+  results_mediumET[[14]] <- results_mediumET[[14]] + remove_x + remove_y
+  results_mediumET[[15]] <- results_mediumET[[15]] + remove_x + remove_y
+  results_mediumET[[16]] <- results_mediumET[[16]] + remove_x + remove_y
 
-results_mediumET[[17]] <- results_mediumET[[17]] + remove_x
-results_mediumET[[18]] <- results_mediumET[[18]] + remove_x + remove_y
-results_mediumET[[19]] <- results_mediumET[[19]] + remove_y
-results_mediumET[[20]] <- results_mediumET[[20]] + remove_y
+  results_mediumET[[17]] <- results_mediumET[[17]] + remove_x
+  results_mediumET[[18]] <- results_mediumET[[18]] + remove_x + remove_y
+  results_mediumET[[19]] <- results_mediumET[[19]] + remove_y
+  results_mediumET[[20]] <- results_mediumET[[20]] + remove_y
 
-results_mediumET[[21]] <- results_mediumET[[21]]
-results_mediumET[[22]] <- results_mediumET[[22]] + remove_y}
+  results_mediumET[[21]] <- results_mediumET[[21]]
+  results_mediumET[[22]] <- results_mediumET[[22]] + remove_y}
 
 # create one plot
 wrap_plots(results_mediumET, ncol = 4, nrow = 6) + plot_layout(guides = "collect")
@@ -242,41 +228,35 @@ ggsave("facet_mediumET.png",
 
 ### LOW ET ####
 # get a list of low ET sites and plot them individually
-df <- plot_allsites_fvar %>% dplyr::filter(cluster == "low fET")
+df <- plot_allsites_EVI %>% dplyr::filter(cluster == "low fET")
 low_fET <- unique(df$name_site) # list of sites within fET group
 results_lowET <- list() # initialize list to save plots
 
 for (i in 1:length(low_fET)){
   site <- low_fET[i]
 
-  # calculate coefficient to scale two variables for visual comparison (so that maxima match)
-  coeff <- max(df$EVI, na.rm = TRUE)/max(df$fvar, na.rm = TRUE)
-
-  df <- plot_allsites_fvar %>% dplyr::filter(name_site == site)
-  b <- heatscatter(x=df$deficit, y = df$fvar, ggplot = TRUE)
-  b$data$name_site = df$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
-
-  a <- b + labs(y = "fET (-)",
+  df <- plot_allsites_EVI %>% dplyr::filter(name_site == site)
+  a <- heatscatter(x=df$deficit, y = df$fvar, ggplot = TRUE)
+  a$data$name_site = df$name_site   # hack the name of the site back into the ggplot object (it won't take it from original df through heatscatter function)
+  a <- a + labs(y = "Unitless",
                 x = "CWD (mm)",
                 title = site) +
-    #geom_point(data = df, aes(x = deficit, y = EVI/coeff), size=1.5, alpha = 0.5, color="#0a6228", position = position_stack(reverse = TRUE)) + # Divide by coeff to get the same range than other variable
-    geom_ribbon(data = df_EVI, aes(x = deficit, ymin = perc_25, ymax = perc_75), fill = "#0a6228", alpha=0.5) +
-    geom_line(data = df_EVI, aes(x = deficit, y = perc_50), color="#0a6228") +
+    geom_ribbon(data = df, aes(x = medianCWD, ymin = perc_25, ymax = perc_75), fill = "#0CFA07", alpha=0.3) +
+    geom_line(data = df, aes(x = medianCWD, y = perc_50), color="#0CFA07", alpha=0.9, size = 1) +
     theme_classic() +
     theme(
-      axis.text=element_text(size = 17),
-      axis.title=element_text(size = 19),
-      strip.text = element_text(size=17), # plot title
-      plot.title = element_text(hjust = 0.5, size = 19)) + # center title and change size
-    scale_y_continuous(
-      breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0),
-      sec.axis = sec_axis(~.*coeff, name="EVI (-)")) + # Add a second axis and specify its features
-    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 325) , expand = c(0, 0))
+      axis.text=element_text(size = 14),
+      axis.title=element_text(size = 17),
+      plot.title = element_text(hjust = 0.5, size = 19) # center title and change size
+    ) +
+    scale_y_continuous(breaks = seq(0, 1.4, 0.4), limits = c(0, 1.4), expand = c(0, 0)) +
+    scale_x_continuous(breaks = seq(0, 300, 100), limits = c(0, 325), expand = c(0, 0))
   a
 
   results_lowET[[length(results_lowET) + 1]] <- a # store plot in a list
   print(low_fET[i])
 }
+
 
 # functions to remove x and y axes when not needed
 {remove_y <- theme(
@@ -316,3 +296,28 @@ ggsave("facet_lowET.png",
        height = 10)
 
 
+# legend ------------------------------------------------------------------
+
+# # create legend
+# ggplot(plot_allsites_EVI,
+#        aes(x = deficit))+
+#   geom_point(aes(y = fvar, color = "fET")) +
+#   # geom_line(aes(y = EVI, color = "MODIS EVI")) +
+#   scale_color_manual(values = c("fET" = "red", "MODIS EVI" = "#0CFA07"))
+# # scale_linetype_manual(values=c(1,2,NA))+
+# #   scale_shape_manual(values=c(NA,NA,2)) +
+#
+#
+# ggplot()+
+#   # geom_point(data=plot_allsites_EVI,aes(y = fvar, x = deficit, colour="fET"),size=1 )+
+#   geom_line(data=plot_allsites_EVI,aes(y= EVI,x = deficit, colour="MODIS EVI", ),size=1) +
+#   theme_bw() +
+#   scale_color_manual(values = c("fET" = "red", "MODIS EVI" = "#0CFA07")) +
+#   theme(legend.title=element_blank(),
+#         legend.box.background = element_rect(colour = "black"))
+#
+# ggsave("facet_legend2.png",
+#        path = "./",
+#        width = 4,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
+#        height = 4,
+# )

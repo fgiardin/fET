@@ -57,13 +57,19 @@ scatterheat <- function(df, X, Y, title, path){
   png(filename = path, width = 4, height = 4.2, units = 'in', res = 300)
   par(mar=c(5 ,4.5,2,1)+.1, font.main = 1, cex.lab = 1.1) # The 'mar' argument of 'par' sets the width of the margins in the order: 'bottom', 'left', 'top', 'right'. The default is to set 'left' to 4
   plot.new()
-  plot.window(xlim = c(min(df$X, na.rm=TRUE),max(df$X, na.rm=TRUE)),
-              ylim = c(min(df$Y, na.rm=TRUE),max(df$Y, na.rm=TRUE)))
+  plot.window(xlim = c(0,6),
+              ylim = c(0,6))
+  # xlim = c(min(df$X, na.rm=TRUE),max(df$X, na.rm=TRUE)),
+  # ylim = c(min(df$Y, na.rm=TRUE),max(df$Y, na.rm=TRUE)))
   heatscatterpoints(x = df$X, y = df$Y)
   abline(lm_model, col = 'red', lwd = 1)
   abline(c(0,1), lty=3)
-  axis(1)
-  axis(2)
+
+  # X-axis
+  axis(1, at = c(0, 2, 4, 6))
+  # Y-axis
+  axis(2, at = c(0, 2, 4, 6))
+
   title(xlab = axisX, ylab = axisY, main = title, sub = subtitle, cex.sub=0.8)
   box()
   dev.off()

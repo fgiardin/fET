@@ -47,6 +47,7 @@ texture_plot$color <- gsub('medium fET', '#f4a261', texture_plot$color)
 texture_plot$color <- gsub('low fET', '#e76f51', texture_plot$color)
 colors = c("#e9c46a", "#f4a261", "#e76f51") # for legend
 
+png("triangular_stexture.png", width = 500, height = 500)
 soil.texture(texture_plot[,2:4],
              # label.points = TRUE, # show labels
              # point.labels = texture_plot$cluster,
@@ -60,7 +61,7 @@ legend(x=0.9, y = 0.9,
        legend = c("high fET", "medium fET", "low fET"),
        col = colors,
        fill = colors)
-png("rplot.png", width = 500, height = 500)
+dev.off()
 
 ### PANEL A: Soil texture ####################################
 # calculate median of soil fraction per bin
@@ -205,7 +206,9 @@ c <- ggplot(table1, aes(x = cluster, y = ai, fill = cluster)) +
         axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
         plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm") # set plot margins (useful when creating combined figure)
         ) +
-  scale_fill_manual(values = c("#e9c46a", "#f4a261", "#e76f51")) +  # set colors
+  scale_fill_manual(values = c("high fET" = "#e9c46a",
+                               "medium fET" = "#f4a261",
+                               "low fET" = "#e76f51")) +  # set colors
   scale_y_continuous(breaks = seq(0, 2, 0.25)) # adjust y axis ticks
 plot(c)
 
@@ -221,7 +224,7 @@ load("data-raw/df_gti.RData")
 table1 <- table1 %>%
   left_join(df_gti %>% dplyr::select(name_site, gti), by = "name_site")
 
-d <- ggplot(df_gti, aes(x = cluster, y = gti, fill = cluster)) +
+d <- ggplot(table1, aes(x = cluster, y = gti, fill = cluster)) +
   stat_boxplot(geom ='errorbar', width = 0.5) +
   geom_boxplot(width = 0.5) +
   theme_classic() +
@@ -240,7 +243,9 @@ d <- ggplot(df_gti, aes(x = cluster, y = gti, fill = cluster)) +
     axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
     plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm")
   ) +
-  scale_fill_manual(values = c("#e9c46a", "#f4a261", "#e76f51")) +
+  scale_fill_manual(values = c("high fET" = "#e9c46a",
+                               "medium fET" = "#f4a261",
+                               "low fET" = "#e76f51")) +
   scale_y_continuous(breaks = seq(0, 10, 2)) # change y axis label (but not limits)
 plot(d)
 
@@ -274,7 +279,9 @@ e <- ggplot(table1, aes(x= cluster, y = MAP_worldclim, fill = cluster)) +
     axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
     plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm")
   ) +
-  scale_fill_manual(values = c("#e9c46a", "#f4a261", "#e76f51")) +
+  scale_fill_manual(values = c("high fET" = "#e9c46a",
+                               "medium fET" = "#f4a261",
+                               "low fET" = "#e76f51")) +
   scale_y_continuous(breaks = seq(0, 2000, 250))
 e
 
@@ -298,7 +305,9 @@ f <- ggplot(table1, aes(x = cluster, y = MAT_worldclim, fill = cluster)) +
     plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
     axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
   ) +
-  scale_fill_manual(values = c("#e9c46a", "#f4a261", "#e76f51")) +
+  scale_fill_manual(values = c("high fET" = "#e9c46a",
+                               "medium fET" = "#f4a261",
+                               "low fET" = "#e76f51")) +
   scale_y_continuous(breaks = seq(0, 30, 5))
 f
 
