@@ -1,6 +1,7 @@
 ### run model for every site and plot metrics and results
 
-### script built from 2.run_ML_model_euler.R, simplified to run for some sites only
+### script built from 2.run_ML_model_euler.R
+### run model using modelled SM at sites with GOOD observational SM to double check
 ### results are in SI
 
 #!/usr/bin/env Rscript
@@ -294,30 +295,42 @@ biginstances <- ddf_CWD$inst %>%
 ddf_plot_biginstances <- ddf_plot %>%
   dplyr::filter(iinst %in% biginstances)
 
-a <- heatscatter(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar, ggplot = TRUE)
-a <- a +
-  labs(
-    y = "fET (-)",
-    x = "Cumulative water deficit (mm)",
-    title = sitename
-  ) +
-  theme_classic() +
-  theme(
-    axis.text=element_text(size = 14),
-    axis.title=element_text(size = 16),
-    legend.text=element_text(size=14),
-    plot.title = element_text(hjust = 0.5, size = 16, face="bold"), # center title
-    plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")
-  ) +
-  scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) + # 'expand' # removes space between axis and plotted data (!!!)
-  scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
+rows=nrow(ddf_plot_biginstances)
+title = sprintf("%s", sitename)
 
 if (modelledSM) {
-  ggsave("fET_vs_CWD_density_biginstances_modelledSM.png", path = "results_path", width = 4, height = 4)
-} else {
-  ggsave("fET_vs_CWD_density_biginstances.png", path = "results_path", width = 4, height = 4)
-}
 
+
+  file = sprintf("%s/fET_vs_CWD_density_biginstances_modelledSM.png", results_path)
+  png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
+  plot.new()
+  plot.window(xlim = c(0,300),
+              ylim = c(0,1.5))
+  plot.window(xlim = c(min(ddf_plot_biginstances$deficit, na.rm=TRUE),max(ddf_plot_biginstances$deficit, na.rm=TRUE)),
+              ylim = c(0,1.5))
+  heatscatterpoints(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar)
+  axis(1)
+  axis(2)
+  title(main = title, xlab = "Cumulative water deficit (mm)", ylab = "fT")
+  box()
+  dev.off()
+
+} else {
+
+  file = sprintf("%s/fET_vs_CWD_density_biginstances.png", results_path)
+  png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
+  plot.new()
+  plot.window(xlim = c(0,300),
+              ylim = c(0,1.5))
+  plot.window(xlim = c(min(ddf_plot_biginstances$deficit, na.rm=TRUE),max(ddf_plot_biginstances$deficit, na.rm=TRUE)),
+              ylim = c(0,1.5))
+  heatscatterpoints(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar)
+  axis(1)
+  axis(2)
+  title(main = title, xlab = "Cumulative water deficit (mm)", ylab = "fT")
+  box()
+  dev.off()
+}
 
 }
 
