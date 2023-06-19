@@ -37,7 +37,7 @@ library(LSD)
 library(doMC) # to run in parallel
 registerDoMC(cores=200) # specify number of cores to run code in parallel // 200 for Euler, 5 when local
 
-modelledSM = 0 # use modelled SM or not (it will use observational SM from FLUXNET)
+modelledSM = 1 # use modelled SM or not (it will use observational SM from FLUXNET)
 vec_sites <- c("US-Ton", "US-Var", "AU-Stp", "DE-Tha", "IT-CA3", "US-MMS")
 
 for(i in vec_sites) {
