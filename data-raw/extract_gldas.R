@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # extract needed variables from GLDAS world maps
-# designed to run per site (consistent with rest of code)
+# designed to run per site (consistently with rest of code)
 
 # variables:
 # Evap_tavg, (kg m-2 s-1)
@@ -113,9 +113,8 @@ ddf_gldas <- df_gldas %>%
          PET = PET*3*60*60) %>%
   summarise(P = sum(P, na.rm = TRUE), # calculate daily sum (for P and ET)
             ET = sum(ET, na.rm = TRUE),
-            PET = sum(PET, na.rm = TRUE),
+            PET = sum(PET, na.rm = TRUE)
             )
-
 
 # calculate fET
 ddf_gldas <- ddf_gldas %>%

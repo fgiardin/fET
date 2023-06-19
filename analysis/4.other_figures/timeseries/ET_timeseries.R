@@ -209,7 +209,7 @@ ggarrange(a, b,
           labels = c("a", "b"),
           ncol = 1, nrow = 2,
           common.legend = TRUE, # have just one common legend
-          legend="top") # and place it in the bottom
+          legend="top") # and place it
 
 # save
 ggsave("ET_time_series.png", path = "./", width = 9, height = 8)

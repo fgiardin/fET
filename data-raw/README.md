@@ -2,9 +2,15 @@ This folder contains raw data and the scripts to download and pre-process the da
 
 * `GLDAS`: folder that contains some GLDAS data provided as example 
 
+* `CWDX80`: folder that contains CWDX80 data to produce Fig. 1 (Stocker et al., 2023)
+
+* `Transpiration`: folder that contains partitioned Transpiration data (Li et al., 2019)
+
 * **FLX_AU-Wom_FLUXNET2015_FULLSET_HH_2010-2012_1-3.csv**: table containing FLUXNET2015 data for site AU-Wom (provided here as an example to run the data screening script locally)
 
 * **extract_GTI.R.ç**: Script to extract global topographic index (GTI) values at FLUXNET2015 locations. 
+
+* **extract_transpiration.R.**: Script to read Transpiration datasets and put in right format for ML model
 
 * **extract_HWSD.R**: Script to extract soil data from the HWSDR dataset. 
 

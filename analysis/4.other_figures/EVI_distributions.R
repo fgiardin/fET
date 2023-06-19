@@ -123,7 +123,7 @@ b <- ggplot(merged ,
     legend.position=c(.75,.9),
     legend.title=element_blank()
   ) +
-  xlab("EVI (-)") + # nested expression() with two "paste()" inside, one for the entire subscript and the other for the units
+  xlab("EVI (-)") +
   ylab("Frequency") +
   scale_fill_manual(labels = c("Moist days", "Dry days"), values = c("blue", "red"))
 b
