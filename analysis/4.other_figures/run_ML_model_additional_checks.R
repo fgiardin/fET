@@ -1,6 +1,7 @@
 ### run model for every site and plot metrics and results
 
 ### script built from 2.run_ML_model_euler.R, simplified to run for some sites only
+### results are in SI
 
 #!/usr/bin/env Rscript
 
@@ -97,7 +98,7 @@ settings <- list(
 #   settings$varnams_soilm = "wcont_s11"
 # }
 
-# use modelled SM
+# force modelled SM
 settings$varnams_soilm = "wcont_s11"
 
 # ###*** find optimal SM threshold ***###
@@ -205,7 +206,7 @@ out <- train_predict_fvar(
 )
 
 # save output
-file = sprintf("%s/out_%s.RData", data_frames_path, sitename)
+file = sprintf("%s/out_modelledSM_%s.RData", data_frames_path, sitename)
 save(out, file = file)
 
 
