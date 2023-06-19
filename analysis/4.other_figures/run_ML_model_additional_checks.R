@@ -355,15 +355,15 @@ ddf_plot <- ddf %>%
 # box()
 # dev.off()
 
-# # only take big CWD instances
-# biginstances <- ddf_CWD$inst %>%
-#   mutate(year = lubridate::year(date_start)) %>%
-#   group_by(year) %>%
-#   dplyr::filter(deficit == max(deficit)) %>%
-#   pull(iinst)
-#
-# ddf_plot_biginstances <- ddf_plot %>%
-#   dplyr::filter(iinst %in% biginstances)
+# only take big CWD instances
+biginstances <- ddf_CWD$inst %>%
+  mutate(year = lubridate::year(date_start)) %>%
+  group_by(year) %>%
+  dplyr::filter(deficit == max(deficit)) %>%
+  pull(iinst)
+
+ddf_plot_biginstances <- ddf_plot %>%
+  dplyr::filter(iinst %in% biginstances)
 #
 # rows=nrow(ddf_plot_biginstances)
 # title = sprintf("%s, N = %d", sitename, rows)
