@@ -309,16 +309,16 @@ plottin = out$df_all %>%
 
 ##### SCATTER PLOTS OF MODELS VS OBS #####
 print("SCATTER PLOTS OF MODELS VS OBS")
-file = sprintf("%s/scatter_nn_act-obs_all.png", results_path)
+file = sprintf("%s/scatter_nn_act-obs_all_modelledSM.png", results_path)
 scatterheat(out$df_cv, "nn_act", "obs", "All days", file)
 
-file = sprintf("%s/scatter_nn_pot-obs_moist.png", results_path)
+file = sprintf("%s/scatter_nn_pot-obs_moist_modelledSM.png", results_path)
 scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_pot", "obs", "Moist days", file)
 
-file = sprintf("%s/scatter_nn_pot-obs_dry.png", results_path)
+file = sprintf("%s/scatter_nn_pot-obs_dry_modelledSM.png", results_path)
 scatterheat(out$df_all %>% dplyr::filter(!moist), "nn_pot", "obs", "Dry days", file)
 
-file = sprintf("%s/scatter_nn_act-pot_all.png", results_path)
+file = sprintf("%s/scatter_nn_act-pot_all_modelledSM.png", results_path)
 scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
 
 
@@ -401,7 +401,7 @@ a <- a +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) + # 'expand' # removes space between axis and plotted data (!!!)
   scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
 a
-ggsave("fET_vs_CWD_density_biginstances.png", path = "results_path", width = 4, height = 4)
+ggsave("fET_vs_CWD_density_biginstances_modelledSM.png", path = "results_path", width = 4, height = 4)
 
 # # color by instances
 # ggplot(ddf_plot_biginstances, aes(x=deficit, y=fvar, color = iinst)) +
