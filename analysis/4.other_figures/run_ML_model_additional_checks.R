@@ -36,6 +36,7 @@ library(LSD)
 library(doMC) # to run in parallel
 registerDoMC(cores=200) # specify number of cores to run code in parallel // 200 for Euler, 5 when local
 
+modelledSM = 0 # use modelled SM or not (it will use observational SM from FLUXNET)
 vec_sites <- c("US-Ton", "US-Var", "AU-Stp", "DE-Tha", "IT-CA3", "US-MMS")
 
 for(i in vec_sites) {
@@ -99,7 +100,12 @@ settings <- list(
 # }
 
 # force modelled SM
-settings$varnams_soilm = "wcont_s11"
+if (modelledSM) {
+  settings$varnams_soilm = "wcont_s11"
+} else {
+  settings$varnams_soilm = "SWC_F_MDS_1"
+}
+
 
 # ###*** find optimal SM threshold ***###
 # extract optimal SM treshold from Stocker et al. 2018
@@ -206,8 +212,14 @@ out <- train_predict_fvar(
 )
 
 # save output
-file = sprintf("%s/out_modelledSM_%s.RData", data_frames_path, sitename)
-save(out, file = file)
+if (modelledSM) {
+  file = sprintf("%s/out_modelledSM_%s.RData", data_frames_path, sitename)
+  save(out, file = file)
+} else {
+  file = sprintf("%s/out_%s.RData", data_frames_path, sitename)
+  save(out, file = file)
+}
+
 
 
 ### PRINT PERFORMANCE METRICS ##########################################
@@ -224,103 +236,39 @@ plottin = out$df_all %>%
   mutate(NETRAD = LE.to.ET(NETRAD, TA_F)*24*60*60) # convert NETRAD in same units of ET (kg/m2*d)
   #left_join(ddf %>% dplyr::select(date, TA_F, PPFD, EVI), by ="date")
 
-# # # get coeff to scale netrad
-# lm_model = lm(nn_pot ~ NETRAD + 0, plottin)
-# coeff = lm_model[["coefficients"]][["NETRAD"]]
-#
-# m <- ggplot(data = plottin, aes(x=date)) +
-#   geom_line(aes(y = NETRAD*coeff, color = "NETRAD")) +
-#   geom_line(aes(y = obs, color = "obs")) + #*PPFD*EVI
-#   geom_line(aes(y = nn_act, color = "nn_act")) +
-#   geom_line(aes(y = nn_pot, color = "nn_pot")) +
-#   labs(x = "Time", y = "mm/day", color = "Legend") +
-#   ylim(0, 7.5) +
-#   theme_classic()
-# #ylim(min(out$df_cv$nn_pot), max(out$df_cv$nn_pot))
-# m +  scale_color_manual(values = c("black", "chartreuse","brown1","cornflowerblue"))
-# # save plot
-# ggsave("ET_vs_nn.png", path = results_path, width = 10, height = 3)
-#
-# # ZOOM
-# m <- ggplot(data = plottin %>% slice(100:500), aes(x=date)) +
-#   geom_line(aes(y = NETRAD*coeff, color = "NETRAD")) +
-#   geom_line(aes(y = obs, color = "obs")) +
-#   geom_line(aes(y = nn_act, color = "nn_act")) +
-#   geom_line(aes(y = nn_pot, color = "nn_pot")) +
-#   labs(x = "Time", y = "mm/day", color = "Legend") +
-#   theme_classic()
-# #ylim(0, 5)
-# #ylim(min(out$df_cv$nn_pot), max(out$df_cv$nn_pot))
-# m +  scale_color_manual(values = c("black","chartreuse","brown1","cornflowerblue"))
-# # save plot
-# ggsave("ET_vs_nn_zoom.png", path = results_path, width = 5, height = 3)
-#
-# ##### SOIL MOISTURE BIAS #####
-# print("SOIL MOISTURE BIAS")
-# df_test <- out$df_all %>%
-#   mutate(bias_act = nn_act - obs,
-#          bias_pot = nn_pot - obs,
-#          soilm_bin = cut(soilm, 10)
-#   )
-#
-# df_test %>%
-#   tidyr::pivot_longer(cols = c(bias_act, bias_pot), names_to = "source", values_to = "bias") %>%
-#   ggplot(aes(x = soilm_bin, y = bias, fill = source)) +
-#   geom_boxplot() +
-#   geom_hline(aes(yintercept = 0.0), linetype = "dotted") +
-#   labs(title = "Bias vs. soil moisture")
-#
-# # save plot
-# ggsave("bias_act_pot.png", path = results_path, width = 8, height = 4)
-#
-# # linear regression
-# linmod <- lm(bias_act ~ soilm, data = df_test)
-# testsum <- summary(linmod)
-# slope_mid <- testsum$coefficients["soilm","Estimate"]
-# slope_se  <- testsum$coefficients["soilm","Std. Error"]
-# passtest_bias_vs_soilm <- ((slope_mid - slope_se) < 0 && (slope_mid + slope_se) > 0)
-# print(passtest_bias_vs_soilm)
-#
-# df_test %>%
-#   ggplot(aes(x = soilm, y = bias_act)) +
-#   geom_point() +
-#   geom_smooth(method = "lm")
-#
-# # save plot
-# ggsave("lm_bias_vs_soilmoisture.png", path = results_path, width = 5, height = 5)
-# dev.off()
-#
-# ##### NNact -- NNpot BIAS DURING MOIST DAYS (BOXPLOT) #####
-# print("BIAS DURING MOIST DAYS (BOXPLOT)")
-# df_test %>%
-#   tidyr::pivot_longer(cols = c(bias_act, bias_pot), names_to = "source", values_to = "bias") %>%
-#   dplyr::filter(moist) %>%
-#   ggplot(aes(y = bias, fill = source)) +
-#   geom_boxplot() +
-#   geom_hline(aes(yintercept = 0), linetype = "dotted")
-#
-# df_test %>%
-#   dplyr::filter(moist) %>%
-#   summarise(bias_act = mean(bias_act, na.rm = TRUE), bias_pot = mean(bias_pot, na.rm = TRUE))
-#
-# # save plot
-# ggsave("bias_nn_moistdays_doublecheck.png", path = results_path, width = 5, height = 5)
-# dev.off()
 
 ##### SCATTER PLOTS OF MODELS VS OBS #####
 print("SCATTER PLOTS OF MODELS VS OBS")
-file = sprintf("%s/scatter_nn_act-obs_all_modelledSM.png", results_path)
-scatterheat(out$df_cv, "nn_act", "obs", "All days", file)
 
-file = sprintf("%s/scatter_nn_pot-obs_moist_modelledSM.png", results_path)
-scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_pot", "obs", "Moist days", file)
+if (modelledSM) {
 
-file = sprintf("%s/scatter_nn_pot-obs_dry_modelledSM.png", results_path)
-scatterheat(out$df_all %>% dplyr::filter(!moist), "nn_pot", "obs", "Dry days", file)
+  file = sprintf("%s/scatter_nn_act-obs_all_modelledSM.png", results_path)
+  scatterheat(out$df_cv, "nn_act", "obs", "All days", file)
 
-file = sprintf("%s/scatter_nn_act-pot_all_modelledSM.png", results_path)
-scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
+  file = sprintf("%s/scatter_nn_pot-obs_moist_modelledSM.png", results_path)
+  scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_pot", "obs", "Moist days", file)
 
+  file = sprintf("%s/scatter_nn_pot-obs_dry_modelledSM.png", results_path)
+  scatterheat(out$df_all %>% dplyr::filter(!moist), "nn_pot", "obs", "Dry days", file)
+
+  file = sprintf("%s/scatter_nn_act-pot_all_modelledSM.png", results_path)
+  scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
+
+} else {
+
+  file = sprintf("%s/scatter_nn_act-obs_all.png", results_path)
+  scatterheat(out$df_cv, "nn_act", "obs", "All days", file)
+
+  file = sprintf("%s/scatter_nn_pot-obs_moist.png", results_path)
+  scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_pot", "obs", "Moist days", file)
+
+  file = sprintf("%s/scatter_nn_pot-obs_dry.png", results_path)
+  scatterheat(out$df_all %>% dplyr::filter(!moist), "nn_pot", "obs", "Dry days", file)
+
+  file = sprintf("%s/scatter_nn_act-pot_all.png", results_path)
+  scatterheat(out$df_cv %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
+
+}
 
 ### PRINT RESULTS ######################################################
 
@@ -336,25 +284,6 @@ ddf_plot <- ddf %>%
   left_join(ddf_CWD$df, by = "date") %>%
   left_join(out$df_all, by = "date")
 
-# ##### DENSITY PLOT fET vs CWD #####
-# print("DENSITY PLOTS")
-# # all data
-# rows=nrow(ddf_plot)
-# title = sprintf("%s, N = %d", sitename, rows)
-#
-# file = sprintf("%s/fET_vs_CWD_density.png", results_path)
-# png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
-# plot.new()
-# plot.window(xlim = c(0,300),
-# #plot.window(xlim = c(min(ddf_plot$deficit, na.rm=TRUE),max(ddf_plot$deficit, na.rm=TRUE)),
-#             ylim = c(0,1.5))
-# heatscatterpoints(x=ddf_plot$deficit, y = ddf_plot$fvar)
-# axis(1)
-# axis(2)
-# title(main = title, xlab = "Cumulative Water Deficit (mm)", ylab = "fET")
-# box()
-# dev.off()
-
 # only take big CWD instances
 biginstances <- ddf_CWD$inst %>%
   mutate(year = lubridate::year(date_start)) %>%
@@ -364,24 +293,6 @@ biginstances <- ddf_CWD$inst %>%
 
 ddf_plot_biginstances <- ddf_plot %>%
   dplyr::filter(iinst %in% biginstances)
-#
-# rows=nrow(ddf_plot_biginstances)
-# title = sprintf("%s, N = %d", sitename, rows)
-#
-# file = sprintf("%s/fET_vs_CWD_density_biginstances.png", results_path)
-# png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
-# plot.new()
-# # plot.window(xlim = c(0,300),
-# #             ylim = c(0,1.5))
-# plot.window(xlim = c(min(ddf_plot_biginstances$deficit, na.rm=TRUE),max(ddf_plot_biginstances$deficit, na.rm=TRUE)),
-#             ylim = c(0,1.5))
-# heatscatterpoints(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar)
-# axis(1)
-# axis(2)
-# title(main = title, xlab = "Big instances CWD (mm)", ylab = "fET")
-# box()
-# dev.off()
-
 
 a <- heatscatter(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar, ggplot = TRUE)
 a <- a +
@@ -400,88 +311,12 @@ a <- a +
   ) +
   scale_y_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) + # 'expand' # removes space between axis and plotted data (!!!)
   scale_x_continuous(breaks = seq(0, 300, 50), limits = c(0, 310), expand = c(0, 0))
-a
-ggsave("fET_vs_CWD_density_biginstances_modelledSM.png", path = "results_path", width = 4, height = 4)
 
-# # color by instances
-# ggplot(ddf_plot_biginstances, aes(x=deficit, y=fvar, color = iinst)) +
-#   geom_point() +
-#   ylim(0,1.5) +
-#   ggtitle(title) +
-#   theme_light()
-
-#
-# # with fET=observations/nn_pot
-# rows=nrow(ddf_plot)
-# title = sprintf("%s, N = %d", sitename, rows)
-#
-# ddf_plot <- ddf_plot %>%
-#   mutate(fvar_obs = obs/nn_pot)
-#
-# file = sprintf("%s/fET-obs_vs_CWD_density.png", results_path)
-# png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
-# plot.new()
-# plot.window(xlim = c(0,300),
-# #plot.window(xlim = c(min(ddf_plot$deficit, na.rm=TRUE),max(ddf_plot$deficit, na.rm=TRUE)),
-#             ylim = c(0,1.5))
-# # ylim = c(min(ddf_plot$fvar, na.rm=TRUE),max(ddf_plot$fvar, na.rm=TRUE)))
-# # ylim = c(0,1.5))
-# heatscatterpoints(x=ddf_plot$deficit, y = ddf_plot$fvar_obs)
-# axis(1)
-# axis(2)
-# title(main = title, xlab = "CWD (mm)", ylab = "obs/nn_pot")
-# box()
-# dev.off()
-#
-#
-# ##### DENSITY PLOT EF vs CWD #####
-# # remove noise (lit review: EF is usually between 0 and 1-1.5)
-# # imp: filter only at this point (otherwise would remove relevant data to train model)
-# ddf_plot_EF <- ddf_plot_biginstances %>% #only take big instances
-#   dplyr::filter(EF > 0) %>%
-#   dplyr::filter(EF < 1)
-#
-# # normalize EF per median of value with no stress
-# EF_ddf_median = ddf_plot_EF %>%
-#   dplyr::filter(deficit < 20)
-# Median_EF = median(EF_ddf_median$EF, na.rm = TRUE)
-#
-# ddf_plot_EF = ddf_plot_EF %>%
-#   mutate(EF_normalized = EF/Median_EF)
-#
-# # density plot
-# rows=nrow(ddf_plot_EF)
-# title = sprintf("%s, N = %d", sitename, rows)
-#
-# file = sprintf("%s/EF_vs_CWD_density.png", results_path)
-# png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
-# plot.new()
-# plot.window(xlim = c(0,300),
-# #plot.window(xlim = c(min(ddf_plot_EF$deficit, na.rm=TRUE),max(ddf_plot_EF$deficit, na.rm=TRUE)),
-#             ylim = c(0,1.5))
-# heatscatterpoints(x=ddf_plot_EF$deficit, y = ddf_plot_EF$EF_normalized)
-# axis(1)
-# axis(2)
-# title(main = title, xlab = "Big instances CWD (mm)", ylab = "normalized EF")
-# #mtext(side=0.5, line=6, at=1, adj=0, cex=0.7, col = 'black', subtitle)
-# box()
-# dev.off()
-#
-# ##### BILINEAR REGRESSION #####
-# print("BILINEAR REGRESSION")
-# library(segmented)
-# #put data in right format for calc_cwd function
-# ddf_CWD_fvar <- ddf_CWD$df %>%
-#   left_join(out$df_all %>% dplyr::select(fvar,date), by = "date")
-#
-# segmented <- fvar::calc_cwd_lue0(ddf_CWD_fvar, ddf_CWD$inst, "fvar", do_plot = TRUE)
-# file = sprintf("%s/segmented_%s.RData", data_frames_path, sitename)
-# save(segmented, file = file)
-#
-# segmented$gg +
-#   labs(title = sprintf("%s, Number of breakpoints = %d", sitename, segmented$num_splits)) +
-#   ylab("fET")
-# ggsave("fET_vs_CWD_bilinear.png", path = results_path, width = 4, height = 4)
+if (modelledSM) {
+  ggsave("fET_vs_CWD_density_biginstances_modelledSM.png", path = "results_path", width = 4, height = 4)
+} else {
+  ggsave("fET_vs_CWD_density_biginstances.png", path = "results_path", width = 4, height = 4)
+}
 
 
 }
