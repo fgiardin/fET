@@ -191,7 +191,7 @@ c <- ggplot(table1, aes(x = cluster, y = ai, fill = cluster)) +
   stat_boxplot(geom ='errorbar', width = 0.5) + # add error bars to whiskers
   geom_boxplot(width = 0.5) +
   theme_classic() +
-  ylab("Aridity index (-)") +
+  ylab("Moisture index (-)") +
   theme(
         axis.title.x=element_blank(), # remove text of x axis
         axis.text.y=element_text(size = 14), # adjust text size and color

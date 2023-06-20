@@ -559,6 +559,10 @@ GLDAS_allsites <- GLDAS_allsites_raw %>%
                         mean(fvar, na.rm=TRUE) + (2.5 * sd(fvar, na.rm=TRUE)))) %>%
   ungroup()
 
+# plot_allsites_gldas <- plot_allsites_fvar %>%
+#   left_join(plot_allsites_gldas, by = c("date", "name_site")) %>%
+#   drop_na()
+
 
 ### get CWD GLDAS
 # GET CWD FOR ALL SITES

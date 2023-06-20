@@ -101,7 +101,7 @@ load(hhdf_name)
 
 # attach temperature and keep only lines that appear in fluxnet df after filtering
 df_gldas <- df_gldas %>%
-  inner_join(hhdf %>% dplyr::select(date, TA_F), by = "date") %>% # select only dates that are in both (to make sure to take filtered data only)
+  left_join(hhdf %>% dplyr::select(date, TA_F), by = "date") %>% # select only dates that are in both (to make sure to take filtered data only)
   mutate(PET = LE.to.ET(PET,TA_F)) # from (W m-2) to (kg m-2 s-1)
 
 # summarise daily

@@ -17,6 +17,11 @@
 devtools::load_all(".")
 library(tidyverse)
 library(caret)
+library(bigleaf)
+library(yardstick)
+library(ggpointdensity)
+library(viridis)
+library(LSD)
 
 # Import TensorFlow and the TensorBoard HParams plugin
 library(tensorflow)
@@ -27,12 +32,6 @@ is_keras_available()
 hp <- import("tensorboard.plugins.hparams.api")
 library(tfruns)
 library(tfestimators)
-
-library(bigleaf)
-library(yardstick)
-library(ggpointdensity)
-library(viridis)
-library(LSD)
 
 library(doMC) # to run in parallel
 registerDoMC(cores=200) # specify number of cores to run code in parallel // 200 for Euler, 5 when local
@@ -275,63 +274,59 @@ if (modelledSM) {
 
 print("PRINT RESULTS")
 
+# load data and function
+{
+sitename = "US-MMS"
+modelledSM = 1
+results_path = "."
+
 # libraries
 library(ggplot2)
 library(LSD) # for density plot
 devtools::load_all(".")
+load("data/dataframes/plot_allsites_fvar.RData")
 
-# merge CWD to results df
-ddf_plot <- ddf %>%
-  left_join(ddf_CWD$df, by = "date") %>%
-  left_join(out$df_all, by = "date")
+ddf_plot <- plot_allsites_fvar %>%
+  dplyr::filter(name_site == sitename)
 
-# only take big CWD instances
-biginstances <- ddf_CWD$inst %>%
-  mutate(year = lubridate::year(date_start)) %>%
-  group_by(year) %>%
-  dplyr::filter(deficit == max(deficit)) %>%
-  pull(iinst)
-
-ddf_plot_biginstances <- ddf_plot %>%
-  dplyr::filter(iinst %in% biginstances)
-
-rows=nrow(ddf_plot_biginstances)
 title = sprintf("%s", sitename)
 
 if (modelledSM) {
 
+  # merge CWD
+  ddf_plot_biginstances <- ddf_plot %>%
+    dplyr::select(-nn_pot, -nn_act, -fvar, -moist, -obs, -soilm) %>%
+    left_join(out$df_all, by = "date")
 
   file = sprintf("%s/fET_vs_CWD_density_biginstances_modelledSM.png", results_path)
   png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
   plot.new()
-  plot.window(xlim = c(0,300),
-              ylim = c(0,1.5))
-  plot.window(xlim = c(min(ddf_plot_biginstances$deficit, na.rm=TRUE),max(ddf_plot_biginstances$deficit, na.rm=TRUE)),
-              ylim = c(0,1.5))
+  plot.window(
+    xlim = c(0, 305),
+    ylim = c(0,1.5))
   heatscatterpoints(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar)
   axis(1)
   axis(2)
-  title(main = title, xlab = "Cumulative water deficit (mm)", ylab = "fT")
+  title(main = title, xlab = "Cumulative water deficit (mm)", ylab = "fET")
   box()
   dev.off()
 
 } else {
-
+  ddf_plot_biginstances <- ddf_plot
   file = sprintf("%s/fET_vs_CWD_density_biginstances.png", results_path)
   png(filename = file, width = 4, height = 4.3, units = 'in', res = 300)
   plot.new()
-  plot.window(xlim = c(0,300),
-              ylim = c(0,1.5))
-  plot.window(xlim = c(min(ddf_plot_biginstances$deficit, na.rm=TRUE),max(ddf_plot_biginstances$deficit, na.rm=TRUE)),
-              ylim = c(0,1.5))
+  plot.window(
+    xlim = c(0, 305),
+    ylim = c(0,1.5))
   heatscatterpoints(x=ddf_plot_biginstances$deficit, y = ddf_plot_biginstances$fvar)
   axis(1)
   axis(2)
-  title(main = title, xlab = "Cumulative water deficit (mm)", ylab = "fT")
+  title(main = title, xlab = "Cumulative water deficit (mm)", ylab = "fET")
   box()
   dev.off()
 }
-
+}
 }
 
 
