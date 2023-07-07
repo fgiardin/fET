@@ -18,7 +18,7 @@ sf_use_s2(FALSE)
 
 # custom fonts
 library(showtext)
-font_add_google("Prata", regular.wt = 400)
+# font_add_google("Prata", regular.wt = 400)
 showtext_auto()
 
 # define extent of the map
@@ -75,16 +75,16 @@ coast_robinson <- coast %>%
   st_intersection(st_union(bb)) %>% # cut to match bb
   st_transform(as.character(robinson)) # transform to robinson
 
-# download ocean outlines
-ocean <- ne_download(
-  scale = 50,
-  type = "ocean",
-  category = "physical",
-  returnclass = "sf")
-ocean_robinson <- ocean %>%
-  st_buffer(0) %>%
-  st_intersection(st_union(bb)) %>% # cut to match bb
-  st_transform(robinson)
+# # download ocean outlines
+# ocean <- ne_download(
+#   scale = 50,
+#   type = "ocean",
+#   category = "physical",
+#   returnclass = "sf")
+# ocean_robinson <- ocean %>%
+#   st_buffer(0) %>%
+#   st_intersection(st_union(bb)) %>% # cut to match bb
+#   st_transform(robinson)
 
 
 # put points in right projection
@@ -97,13 +97,15 @@ points_robinson <- st_transform(points, crs = robinson) # then trasform to Robin
 
 # map ---------------------------------------------------------------------
 
+lwidth = 0.2 # witdh of contour lines
+
 p1 <- ggplot() +
   theme_void() +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
           linetype='solid',
-          fill = "white", # "lightblue", #"grey75",#"#D6D6E9",
-          size=0.1) +
+          fill = "#D3D3D3", # "lightblue", #"grey75",#"#D6D6E9", # LAND
+          size=0.3) +
   # CWDx80 map (hidden in publication)
   # geom_tile(
   #   data = df_plot,
@@ -113,15 +115,15 @@ p1 <- ggplot() +
   # scale_fill_manual(values = colorscale) +
   # scale_color_manual(values = colorscale) +
   geom_sf(data=ocean_robinson,
-          colour='grey23',
+          colour='black',
           linetype='solid',
-          fill = "lightblue", # "white"
-          size=0.1) +
+          fill = "#eff8ff", # "white" # OCEAN
+          linewidth=lwidth) +
   geom_sf(data=bb_robinson, # box for Robinson projection
           color='black',
           linetype='solid',
           fill = NA, # "lightblue", #"grey75",#"#D6D6E9",
-          size=0.1) +
+          linewidth=lwidth) +
   new_scale_color() + # add new color scales for map
   geom_sf(data = points_robinson, # add EC sites
           size=2,
@@ -156,7 +158,7 @@ p1 <- ggplot() +
     legend.position = c(.2, .2),
     legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
     plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'))
-ggsave("legend.png", path = "./", width = 11) # save this for the legend
+# ggsave("legend.png", path = "./", width = 11) # save this for the legend
 
 # inset on Europe
 p2 <- p1 +
@@ -167,7 +169,7 @@ p2 <- p1 +
     st_crs(4326)
   ) +
   theme(legend.position = "none",
-        panel.border = element_rect(colour = "black", fill=NA, size=0.3)) # add border
+        panel.border = element_rect(colour = "black", fill= NA, linewidth=lwidth+0.3)) # add border
 
 
 # compose two maps
@@ -177,11 +179,11 @@ p3 <- ggdraw(
   draw_plot(
     {p2},
     # The distance along a (0,1) x-axis to draw the left edge of the plot
-    x = 0.03,
+    x = 0.005,
     # The distance along a (0,1) y-axis to draw the bottom edge of the plot
-    y = 0.25,
+    y = 0.22,
     # The width and height of the plot expressed as proportion of the entire ggdraw object
-    width = 0.25,
-    height = 0.25)
+    width = 0.30,
+    height = 0.30)
 ggsave("beautiful_map.png", path = "./", width = 11)
 

@@ -520,8 +520,6 @@ e <- e +
 print(e)
 
 
-
-
 ####*** CHARTS GLDAS ***####
 # GLDAS DF
 file_locations_out <- list.files("data/output_GLDAS",
@@ -719,6 +717,58 @@ ggarrange(a, b, c, d, e, f,
 
 # save plot
 ggsave("alldensity.png", path = "./", width = 8, height = 12)
+
+# Distributions of CWD  ----------------------------------------------------
+# plot distributions of CWD for GLDAS vs FLUXNET to use in supplementary material
+
+# FLUXNET
+w <- plot_e %>%
+  ggplot(aes(x = deficit)) +
+  geom_density(color ="grey30", fill = "#B2D0AA", position="identity", alpha=0.5) +
+  # geom_histogram(alpha=0.5, position="identity", color ="grey30", fill = "#B2D0AA") +
+  theme_classic() +
+  theme(
+    axis.text=element_text(size = 12),
+    axis.title=element_text(size = 14),
+    plot.title = element_text(hjust = 0.5, size = 16)
+  ) +
+  xlim(0,300) +
+  scale_y_continuous(breaks = c(0, 0.002, 0.004, 0.006, 0.008, 0.01), limits = c(0, 0.01)) +
+  # scale_y_continuous(breaks = c(0, 250, 500, 750, 1000), limits = c(0, 1100)) +
+  xlab("Cumulative water deficit (mm)") +
+  ylab("Density") +
+  ggtitle("FLUXNET2015")
+w
+
+# GLDAS
+z <- plot_f %>%
+  ggplot(aes(x = deficit)) +
+  geom_density(color ="grey30", fill = "#B2D0AA", position="identity", alpha=0.5) +
+  # geom_histogram(alpha=0.5, position="identity", color ="grey30", fill = "#B2D0AA") +
+  theme_classic() +
+  theme(
+    axis.text=element_text(size = 12),
+    axis.title=element_text(size = 14),
+    plot.title = element_text(hjust = 0.5, size = 16)
+  ) +
+  xlim(0,300) +
+  scale_y_continuous(breaks = c(0, 0.002, 0.004, 0.006, 0.008, 0.01), limits = c(0, 0.01)) +
+  # scale_y_continuous(breaks = c(0, 250, 500, 750, 1000), limits = c(0, 1100)) +
+  xlab("Cumulative water deficit (mm)") +
+  ylab("Density") +
+  ggtitle("GLDAS-NOAH")
+z
+
+# plot together
+library(patchwork)
+
+# plot together using patchwork
+(w | z) +
+  plot_annotation(tag_levels ="a") &
+  theme(plot.tag = element_text(face="bold"))
+
+# save plot
+ggsave("CWD_distributions.png", path = "./", width = 10, height = 5)
 
 
 ####*** CHARTS EF ***####
@@ -953,53 +1003,7 @@ perc_7 <- 1 - nrow(hhdf_7 %>% dplyr::filter(name_site %in% vec_sites))/
   nrow(hhdf_allsites %>% dplyr::filter(name_site %in% vec_sites))
 
 
-# Distributions of CWD  ----------------------------------------------------
-# plot distributions of CWD for GLDAS vs FLUXNET to use in supplementary material
 
-# FLUXNET
-w <- plot_e %>%
-  ggplot(aes(x = deficit)) +
-  geom_histogram(alpha=0.5, position="identity", color ="grey30", fill = "#B2D0AA") +
-  theme_classic() +
-  theme(
-    axis.text=element_text(size = 12),
-    axis.title=element_text(size = 14),
-    plot.title = element_text(hjust = 0.5, size = 16)
-  ) +
-  xlim(0,300) +
-  scale_y_continuous(breaks = c(0, 250, 500, 750, 1000), limits = c(0, 1100)) +
-  xlab("Cumulative water deficit (mm)") +
-  ylab("Frequency") +
-  ggtitle("FLUXNET2015")
-w
-
-# GLDAS
-z <- plot_f %>%
-  ggplot(aes(x = deficit)) +
-  geom_histogram(alpha=0.5, position="identity", color ="grey30", fill = "#B2D0AA") +
-  theme_classic() +
-  theme(
-    axis.text=element_text(size = 12),
-    axis.title=element_text(size = 14),
-    plot.title = element_text(hjust = 0.5, size = 16)
-  ) +
-  xlim(0,300) +
-  scale_y_continuous(breaks = c(0, 250, 500, 750, 1000), limits = c(0, 1100)) +
-  xlab("Cumulative water deficit (mm)") +
-  ylab("Frequency") +
-  ggtitle("GLDAS-NOAH")
-z
-
-# plot together
-library(patchwork)
-
-# plot together using patchwork
-(w | z) +
-  plot_annotation(tag_levels ="a") &
-  theme(plot.tag = element_text(face="bold"))
-
-# save plot
-ggsave("CWD_distributions.png", path = "./", width = 10, height = 5)
 
 
 
