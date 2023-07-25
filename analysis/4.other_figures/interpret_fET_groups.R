@@ -47,7 +47,7 @@ texture_plot$color <- gsub('medium fET', '#f4a261', texture_plot$color)
 texture_plot$color <- gsub('low fET', '#e76f51', texture_plot$color)
 colors = c("#e9c46a", "#f4a261", "#e76f51") # for legend
 
-png("triangular_stexture.png", width = 500, height = 500)
+png("triangular_stexture.png", width = 3500, height = 3300, res = 600) # save at 600 DPI
 soil.texture(texture_plot[,2:4],
              # label.points = TRUE, # show labels
              # point.labels = texture_plot$cluster,
@@ -57,10 +57,11 @@ soil.texture(texture_plot[,2:4],
              col.symbols = texture_plot$color,
              bg.symbols = texture_plot$color,
              pch=19)
-legend(x=0.9, y = 0.9,
+legend(x=-0.1, y = 0.87,
        legend = c("high fET", "medium fET", "low fET"),
        col = colors,
-       fill = colors)
+       fill = colors,
+       cex = 0.85) # size of the legend (cex = 1 is default)
 dev.off()
 
 ### PANEL A: Soil texture ####################################
@@ -342,179 +343,179 @@ ggarrange(a0, b, c, d, e, f,
           # legend="bottom" # consider mettere legenda sotto a tutto con nomi IGBP spelled out
 
 # save plot
-ggsave("Figure_7.png", path = "./", width = 9, height = 12)
+ggsave("Figure_7.png", path = "./", width = 9, height = 12, dpi = 600)
 
 
-
-### FIGURE 8: minimum fET vs aridity index, size is soil type #################
-
-# Notes on the statistical significance of the slopes
-# We use 't' critical value from performing t-test on the slope using alpha = 0.05.
-# If the p-value is smaller than 0.05, the data (x) is successfully explaining the variance in y
-# ==> We can reject the null hypothesis that the slope is equal to zero
-
-### CLAY
-# split in equal-sized groups based on soil fraction
-clay_groups <- quantile(table1$T_CLAY, c(.33, .67), na.rm = TRUE)
-
-# fit a regression model in every group
-model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_CLAY < clay_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
-model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_CLAY > clay_groups[1]) %>% dplyr::filter(T_CLAY < clay_groups[2]))
-model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_CLAY > clay_groups[2]))
-
-# create string for every slope value
-title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
-title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
-title_c = sprintf("Slope = %.2f", summary(model_3)$coefficients[,1] )
-
-# print p-values (have to be lower than 0.05)
-summary(model_1)$coefficients[,4]
-summary(model_2)$coefficients[,4]
-summary(model_3)$coefficients[,4]
-
-# create annotation to add to the plot for every string above
-grob_a <- grobTree(textGrob(title_a, x=0.02,  y=0.95, hjust=0,
-                            gp=gpar(col="#0041a3", fontsize=14, fontface="bold")))
-grob_b <- grobTree(textGrob(title_b, x=0.02,  y=0.89, hjust=0,
-                            gp=gpar(col="#009246", fontsize=14, fontface="bold")))
-grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
-                            gp=gpar(col="#CE2B37", fontsize=14, fontface="bold")))
-
-# plot
-v <- ggplot(table1) +
-  geom_point(aes(x = ai, y = median_fvar, size = T_CLAY)) +
-  theme_classic() +
-  xlab("Aridity index") +
-  ylab("Median fET") +
-  xlim(0, max(table1$ai, na.rm = TRUE)) +
-  geom_abline(slope = model_1[["coefficients"]][["ai"]], intercept = 0, color = "#0041a3") +  #blue
-  geom_abline(slope = model_2[["coefficients"]][["ai"]], intercept = 0, color = "#009246") +  #green
-  geom_abline(slope = model_3[["coefficients"]][["ai"]], intercept = 0, color = "#CE2B37") +  #red
-  labs(size = "Clay (%)") +
-  theme(
-    axis.text=element_text(size = 10),
-    axis.title=element_text(size = 14),
-    legend.text=element_text(size=10),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
-    legend.title=element_text(size = 12),
-    plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm")
-  ) +
-  annotation_custom(grob_a) +  # add slope on figure
-  annotation_custom(grob_b) +
-  annotation_custom(grob_c) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
-plot(v)
-
-
-## SILT
-# split in equal-sized groups based on soil fraction
-silt_groups <- quantile(table1$T_SILT, c(.33, .67), na.rm = TRUE)
-
-# regression
-model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT < silt_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
-model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[1]) %>% dplyr::filter(T_SILT < silt_groups[2]))
-model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[2]))
-
-title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
-title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
-title_c = sprintf("Slope = %.2f", summary(model_3)$coefficients[,1] )
-
-# print p-values
-summary(model_1)$coefficients[,4]
-summary(model_2)$coefficients[,4]
-summary(model_3)$coefficients[,4]
-
-grob_a <- grobTree(textGrob(title_a, x=0.02,  y=0.95, hjust=0,
-                            gp=gpar(col="#0041a3", fontsize=14, fontface="bold")))
-grob_b <- grobTree(textGrob(title_b, x=0.02,  y=0.89, hjust=0,
-                            gp=gpar(col="#009246", fontsize=14, fontface="bold")))
-grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
-                            gp=gpar(col="#CE2B37", fontsize=14, fontface="bold")))
-
-# plot
-w <- ggplot(table1) +
-  geom_point(aes(x = ai, y = median_fvar, size = T_SILT)) +
-  theme_classic() +
-  xlab("Aridity index") +
-  ylab("Median fET") +
-  xlim(0, max(table1$ai, na.rm = TRUE)) +
-  geom_abline(slope = model_1[["coefficients"]][["ai"]], intercept = 0, color = "#0041a3") + #blue
-  geom_abline(slope = model_2[["coefficients"]][["ai"]], intercept = 0, color = "#009246") + #green
-  geom_abline(slope = model_3[["coefficients"]][["ai"]], intercept = 0, color = "#CE2B37") +  #red
-  labs(size = "Silt (%)") +
-  theme(
-    axis.text=element_text(size = 10),
-    axis.title=element_text(size = 14),
-    legend.text=element_text(size=10),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
-    legend.title=element_text(size = 12),
-    plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm")
-  ) +
-  annotation_custom(grob_a) +  # add slope on figure
-  annotation_custom(grob_b) +
-  annotation_custom(grob_c) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
-plot(w)
-
-### SAND
-# split in equal-sized groups based on soil fraction
-sand_groups <- quantile(table1$T_SAND, c(.33, .67), na.rm = TRUE)
-
-model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND < sand_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
-model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[1]) %>% dplyr::filter(T_SAND < sand_groups[2]))
-model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[2]))
-
-title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
-title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
-title_c = sprintf("Slope = %.2f", summary(model_3)$coefficients[,1] )
-
-# p-values
-summary(model_1)$coefficients[,4]
-summary(model_2)$coefficients[,4]
-summary(model_3)$coefficients[,4]
-
-grob_a <- grobTree(textGrob(title_a, x=0.02,  y=0.95, hjust=0,
-                            gp=gpar(col="#0041a3", fontsize=14, fontface="bold", fontfamily = "Arial")))  #blue
-grob_b <- grobTree(textGrob(title_b, x=0.02,  y=0.89, hjust=0,
-                            gp=gpar(col="#009246", fontsize=14, fontface="bold")))  #green
-grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
-                            gp=gpar(col="#CE2B37", fontsize=14, fontface="bold")))  #red
-
-# plot
-z <- ggplot(table1) +
-  geom_point(aes(x = ai, y = median_fvar, size = T_SAND)) +
-  theme_classic() +
-  xlab("Aridity index") +
-  ylab("Median fET") +
-  xlim(0, max(table1$ai, na.rm = TRUE)) +
-  geom_abline(slope = model_1[["coefficients"]][["ai"]], intercept = 0, color = "#0041a3") +
-  geom_abline(slope = model_2[["coefficients"]][["ai"]], intercept = 0, color = "#009246") +
-  geom_abline(slope = model_3[["coefficients"]][["ai"]], intercept = 0, color = "#CE2B37") +
-  labs(size = "Sand (%)") +
-  theme(
-    axis.text=element_text(size = 10),
-    axis.title=element_text(size = 14),
-    legend.text=element_text(size=10),
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
-    legend.title=element_text(size = 12),
-    plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm")
-  ) +
-  annotation_custom(grob_a) +  # add slope on figure
-  annotation_custom(grob_b) +
-  annotation_custom(grob_c) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
-#scale_size(range = c(1,10))
-plot(z)
-
-ggarrange(v, z, w,
-          labels = c("a", "b", "c"),
-          ncol = 2, nrow = 2
-)
-# save plot
-ggsave("fvar_vs_aridityindex_regressions.png", path = "./", width = 10, height = 8)
+### not shown in the paper
+# ### FIGURE 8: minimum fET vs aridity index, size is soil type #################
+#
+# # Notes on the statistical significance of the slopes
+# # We use 't' critical value from performing t-test on the slope using alpha = 0.05.
+# # If the p-value is smaller than 0.05, the data (x) is successfully explaining the variance in y
+# # ==> We can reject the null hypothesis that the slope is equal to zero
+#
+# ### CLAY
+# # split in equal-sized groups based on soil fraction
+# clay_groups <- quantile(table1$T_CLAY, c(.33, .67), na.rm = TRUE)
+#
+# # fit a regression model in every group
+# model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_CLAY < clay_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
+# model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_CLAY > clay_groups[1]) %>% dplyr::filter(T_CLAY < clay_groups[2]))
+# model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_CLAY > clay_groups[2]))
+#
+# # create string for every slope value
+# title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
+# title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
+# title_c = sprintf("Slope = %.2f", summary(model_3)$coefficients[,1] )
+#
+# # print p-values (have to be lower than 0.05)
+# summary(model_1)$coefficients[,4]
+# summary(model_2)$coefficients[,4]
+# summary(model_3)$coefficients[,4]
+#
+# # create annotation to add to the plot for every string above
+# grob_a <- grobTree(textGrob(title_a, x=0.02,  y=0.95, hjust=0,
+#                             gp=gpar(col="#0041a3", fontsize=14, fontface="bold")))
+# grob_b <- grobTree(textGrob(title_b, x=0.02,  y=0.89, hjust=0,
+#                             gp=gpar(col="#009246", fontsize=14, fontface="bold")))
+# grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
+#                             gp=gpar(col="#CE2B37", fontsize=14, fontface="bold")))
+#
+# # plot
+# v <- ggplot(table1) +
+#   geom_point(aes(x = ai, y = median_fvar, size = T_CLAY)) +
+#   theme_classic() +
+#   xlab("Aridity index") +
+#   ylab("Median fET") +
+#   xlim(0, max(table1$ai, na.rm = TRUE)) +
+#   geom_abline(slope = model_1[["coefficients"]][["ai"]], intercept = 0, color = "#0041a3") +  #blue
+#   geom_abline(slope = model_2[["coefficients"]][["ai"]], intercept = 0, color = "#009246") +  #green
+#   geom_abline(slope = model_3[["coefficients"]][["ai"]], intercept = 0, color = "#CE2B37") +  #red
+#   labs(size = "Clay (%)") +
+#   theme(
+#     axis.text=element_text(size = 10),
+#     axis.title=element_text(size = 14),
+#     legend.text=element_text(size=10),
+#     plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
+#     legend.title=element_text(size = 12),
+#     plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm")
+#   ) +
+#   annotation_custom(grob_a) +  # add slope on figure
+#   annotation_custom(grob_b) +
+#   annotation_custom(grob_c) +
+#   scale_x_continuous(expand = c(0, 0)) +
+#   scale_y_continuous(expand = c(0, 0))
+# plot(v)
+#
+#
+# ## SILT
+# # split in equal-sized groups based on soil fraction
+# silt_groups <- quantile(table1$T_SILT, c(.33, .67), na.rm = TRUE)
+#
+# # regression
+# model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT < silt_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
+# model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[1]) %>% dplyr::filter(T_SILT < silt_groups[2]))
+# model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SILT > silt_groups[2]))
+#
+# title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
+# title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
+# title_c = sprintf("Slope = %.2f", summary(model_3)$coefficients[,1] )
+#
+# # print p-values
+# summary(model_1)$coefficients[,4]
+# summary(model_2)$coefficients[,4]
+# summary(model_3)$coefficients[,4]
+#
+# grob_a <- grobTree(textGrob(title_a, x=0.02,  y=0.95, hjust=0,
+#                             gp=gpar(col="#0041a3", fontsize=14, fontface="bold")))
+# grob_b <- grobTree(textGrob(title_b, x=0.02,  y=0.89, hjust=0,
+#                             gp=gpar(col="#009246", fontsize=14, fontface="bold")))
+# grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
+#                             gp=gpar(col="#CE2B37", fontsize=14, fontface="bold")))
+#
+# # plot
+# w <- ggplot(table1) +
+#   geom_point(aes(x = ai, y = median_fvar, size = T_SILT)) +
+#   theme_classic() +
+#   xlab("Aridity index") +
+#   ylab("Median fET") +
+#   xlim(0, max(table1$ai, na.rm = TRUE)) +
+#   geom_abline(slope = model_1[["coefficients"]][["ai"]], intercept = 0, color = "#0041a3") + #blue
+#   geom_abline(slope = model_2[["coefficients"]][["ai"]], intercept = 0, color = "#009246") + #green
+#   geom_abline(slope = model_3[["coefficients"]][["ai"]], intercept = 0, color = "#CE2B37") +  #red
+#   labs(size = "Silt (%)") +
+#   theme(
+#     axis.text=element_text(size = 10),
+#     axis.title=element_text(size = 14),
+#     legend.text=element_text(size=10),
+#     plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
+#     legend.title=element_text(size = 12),
+#     plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm")
+#   ) +
+#   annotation_custom(grob_a) +  # add slope on figure
+#   annotation_custom(grob_b) +
+#   annotation_custom(grob_c) +
+#   scale_x_continuous(expand = c(0, 0)) +
+#   scale_y_continuous(expand = c(0, 0))
+# plot(w)
+#
+# ### SAND
+# # split in equal-sized groups based on soil fraction
+# sand_groups <- quantile(table1$T_SAND, c(.33, .67), na.rm = TRUE)
+#
+# model_1 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND < sand_groups[1])) # forcing intercept = 0, otherwise regression lines won't be comparable
+# model_2 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[1]) %>% dplyr::filter(T_SAND < sand_groups[2]))
+# model_3 = lm(median_fvar ~ ai + 0, table1 %>% dplyr::filter(T_SAND > sand_groups[2]))
+#
+# title_a = sprintf("Slope = %.2f", summary(model_1)$coefficients[,1])
+# title_b = sprintf("Slope = %.2f", summary(model_2)$coefficients[,1])
+# title_c = sprintf("Slope = %.2f", summary(model_3)$coefficients[,1] )
+#
+# # p-values
+# summary(model_1)$coefficients[,4]
+# summary(model_2)$coefficients[,4]
+# summary(model_3)$coefficients[,4]
+#
+# grob_a <- grobTree(textGrob(title_a, x=0.02,  y=0.95, hjust=0,
+#                             gp=gpar(col="#0041a3", fontsize=14, fontface="bold", fontfamily = "Arial")))  #blue
+# grob_b <- grobTree(textGrob(title_b, x=0.02,  y=0.89, hjust=0,
+#                             gp=gpar(col="#009246", fontsize=14, fontface="bold")))  #green
+# grob_c <- grobTree(textGrob(title_c, x=0.02,  y=0.83, hjust=0,
+#                             gp=gpar(col="#CE2B37", fontsize=14, fontface="bold")))  #red
+#
+# # plot
+# z <- ggplot(table1) +
+#   geom_point(aes(x = ai, y = median_fvar, size = T_SAND)) +
+#   theme_classic() +
+#   xlab("Aridity index") +
+#   ylab("Median fET") +
+#   xlim(0, max(table1$ai, na.rm = TRUE)) +
+#   geom_abline(slope = model_1[["coefficients"]][["ai"]], intercept = 0, color = "#0041a3") +
+#   geom_abline(slope = model_2[["coefficients"]][["ai"]], intercept = 0, color = "#009246") +
+#   geom_abline(slope = model_3[["coefficients"]][["ai"]], intercept = 0, color = "#CE2B37") +
+#   labs(size = "Sand (%)") +
+#   theme(
+#     axis.text=element_text(size = 10),
+#     axis.title=element_text(size = 14),
+#     legend.text=element_text(size=10),
+#     plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
+#     legend.title=element_text(size = 12),
+#     plot.margin = margin(0.2, 0.2, 0.2, 0.2, "cm")
+#   ) +
+#   annotation_custom(grob_a) +  # add slope on figure
+#   annotation_custom(grob_b) +
+#   annotation_custom(grob_c) +
+#   scale_x_continuous(expand = c(0, 0)) +
+#   scale_y_continuous(expand = c(0, 0))
+# #scale_size(range = c(1,10))
+# plot(z)
+#
+# ggarrange(v, z, w,
+#           labels = c("a", "b", "c"),
+#           ncol = 2, nrow = 2
+# )
+# # save plot
+# ggsave("fvar_vs_aridityindex_regressions.png", path = "./", width = 10, height = 8)
 
 
 

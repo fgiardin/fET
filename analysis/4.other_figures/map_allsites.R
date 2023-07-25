@@ -97,6 +97,7 @@ points_robinson <- st_transform(points, crs = robinson) # then trasform to Robin
 
 lwidth = 0.2 # witdh of contour lines
 
+# world map
 p1 <- ggplot() +
   theme_void() +
   geom_sf(data=bb_robinson, # box for Robinson projection
@@ -142,22 +143,18 @@ p1 <- ggplot() +
                                "medium fET",
                                "low fET",
                                "excluded")) +
-  # guides(fill=guide_legend(override.aes=list(shape=21))) + # make sure it prints border on points
   theme(
     legend.title=element_blank(),
-    legend.text=element_text(color = "black", size=23, family = "Prata"),
-    legend.background = element_rect(fill="white", color = NA),
-    legend.position = c(.2, .2),
-    legend.key.size = unit(0.1, 'lines'), # to change vertical spacing in legend (default is too much)
-    plot.margin=unit(c(0.1,0.1,0.1,0.1), 'cm'),
-    # legend.spacing.y = unit(10, 'cm')
-    ) +
-  guides(
-    # color = guide_legend(byrow = TRUE),
-    fill = guide_legend(byrow = TRUE)
-  )
+    legend.text=element_text(color = "black", size=40, family = "Prata"),
+    legend.background = element_rect(fill="white", color = "black", linewidth = lwidth), # add black border
+    legend.position = c(.11, .59),
+    legend.key.size = unit(0.1, 'lines'),
+    plot.margin=unit(c(0,0,0,0), 'cm'),
+    legend.spacing.y = unit(0, 'cm'), # remove blank space on top of legend
+    legend.margin = margin(1, 1, 1, 1) # margin around the legend
+    )
+ggsave("world.png", path = "./", width = 11, dpi = 600)
 
-ggsave("legend.png", path = "./", width = 11, dpi = 600)
 
 # inset on Europe
 p2 <- p1 +
@@ -169,56 +166,8 @@ p2 <- p1 +
   ) +
   theme(legend.position = "none",
         panel.border = element_rect(colour = "black", fill= NA, linewidth=lwidth+0.3)) # add border
+ggsave("europe.png", path = "./", width = 2, dpi = 1000) # higher res to make sure it keeps it when pasting in figure above
 
 
-p3 <- p1 +
-  inset_element(p = p2,
-                left = 0.05,
-                bottom = 0.6,
-                right = 0.5,
-                top = 0.95)
 
-# compose final map
-p3 <- ggdraw(
-  p1 +
-    theme(
-      # legend.position = "none", # remove legend
-      plot.margin = margin(0.1, 0.1, 0.1, 0.1, 'cm'),
-      # legend.key.size = unit(1.5, 'lines'),
-      legend.box.background = element_rect(color = NA, fill = NA),
-      legend.position = c(.17, .5),
-      legend.text = element_text(size=30),
-      legend.spacing.y = unit(-10, 'cm')
-      ) +
-    guides(
-      color = guide_legend(byrow = TRUE),
-      fill = guide_legend(byrow = TRUE),
-    )
-  ) +
-
-  # add inset on Europe
-  draw_plot(
-    {p2},
-    # The distance along a (0,1) x-axis to draw the left edge of the plot
-    x = 0.005,
-    # The distance along a (0,1) y-axis to draw the bottom edge of the plot
-    y = 0.22,
-    # The width and height of the plot expressed as proportion of the entire ggdraw object
-    width = 0.30,
-    height = 0.30)
-
-  # # add legend
-  # draw_grob(
-  #   legend,
-  #   # The distance along a (0,1) x-axis to draw the left edge of the plot
-  #   x = 0.005,
-  #   # The distance along a (0,1) y-axis to draw the bottom edge of the plot
-  #   y = 0.32,
-  #   # # The width and height of the plot expressed as proportion of the entire ggdraw object
-  #   # width = 0.30,
-  #   # height = 0.30
-  #   )
-
-ggsave("global_map.png", path = "./", width = 11, dpi = 600)
-ggsave("global_map.eps", path = "./", width = 11, dpi = 600)
 
