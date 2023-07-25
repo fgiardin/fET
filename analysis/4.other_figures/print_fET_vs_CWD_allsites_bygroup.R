@@ -141,6 +141,13 @@ ggsave("facet_highET.png",
        path = "./",
        width = 12,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
        height = 10,
+       dpi = 600
+       )
+ggsave("facet_highET.pdf",
+       path = "./",
+       width = 12,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
+       height = 10,
+       dpi = 600
 )
 
 ### MEDIUM ET ####
@@ -223,7 +230,14 @@ wrap_plots(results_mediumET, ncol = 4, nrow = 6) + plot_layout(guides = "collect
 ggsave("facet_mediumET.png",
        path = "./",
        width = 12,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
-       height = 15)
+       height = 15,
+       dpi = 600)
+
+ggsave("facet_mediumET.pdf",
+       path = "./",
+       width = 12,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
+       height = 15,
+       dpi = 600)
 
 
 ### LOW ET ####
@@ -293,7 +307,15 @@ wrap_plots(results_lowET, ncol = 3, nrow = 4) + plot_layout(guides = "collect")
 ggsave("facet_lowET.png",
        path = "./",
        width = 10,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
-       height = 10)
+       height = 10,
+       dpi = 600)
+
+# save figure
+ggsave("facet_lowET.pdf",
+       path = "./",
+       width = 10,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
+       height = 10,
+       dpi = 600)
 
 
 # legend ------------------------------------------------------------------
@@ -320,4 +342,5 @@ ggsave("facet_lowET.png",
 #        path = "./",
 #        width = 4,  # by increasing ratio here, the points on final figure will appear smaller/bigger (i.e. 10-12 will yield smaller points than 5-6)
 #        height = 4,
+#        dpi = 600
 # )

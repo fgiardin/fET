@@ -13,8 +13,8 @@ scatter_plots_all_selected <- scatter_plots_all %>%
   dplyr::select(date, name_site, pet_splash_coeff, NETRAD_mass_coeff)
 
 ### define sites
-site1_name = "AU-Cpr"
-site2_name = "AU-Stp"
+site1_name = "DK-Sor"
+site2_name = "US-Ton"
 
 ### Site 1
 load(paste0("data/output/", site1_name, "/data_frames/out_", site1_name, ".RData")) # load output of ML model
@@ -145,7 +145,7 @@ a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
     ),
     guide = "none" # hide legend for lines
   ) +
-  scale_x_date(date_breaks="1 month", date_labels = "%b", expand = c(0, 0)) + # set correct x axis
+  scale_x_date(date_breaks="1 month", date_labels = "%b", expand = c(0.003, 0)) + # set correct x axis
   annotation_custom(grob_a) +
   theme( # set legend position and orientation, as well as text size
     legend.position = "top",
@@ -154,7 +154,7 @@ a <- ggplot(data = df %>% dplyr::filter(site == site1_name)) +
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
     legend.text=element_text(size = 12)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 2))
+  scale_y_continuous(expand = c(0, 0), limits = c(-0.1, 4.3))
 plot(a)
 
 grob_b <- grobTree(textGrob(site2_name, x=0.01,  y=0.95, hjust=0,
@@ -192,7 +192,7 @@ b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
                netrad = "dashed"
     ),
     guide = "none") +
-  scale_x_date(date_breaks="1 month", date_labels = "%b", expand = c(0, 0)) +
+  scale_x_date(date_breaks="1 month", date_labels = "%b", expand = c(0.002, 0)) +
   annotation_custom(grob_b) +
   theme(
     legend.position = "top",
@@ -200,8 +200,8 @@ b <- ggplot(data = df %>% dplyr::filter(site == site2_name)) +
     legend.justification = "left",
     axis.text=element_text(size = 12),
     axis.title=element_text(size = 14),
-    legend.text=element_text(size = 12))
-  # scale_y_continuous(expand = c(0, 0), limits = c(0, 4.3))
+    legend.text=element_text(size = 12)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(-0.1, 4.3))
 plot(b)
 
 # create combined figure with subpanels
@@ -212,4 +212,6 @@ ggarrange(a, b,
           legend="top") # and place it
 
 # save
-ggsave("ET_time_series.png", path = "./", width = 9, height = 8)
+ggsave("ET_time_series.png", path = "./", width = 9, height = 8, dpi = 600)
+ggsave("ET_time_series.pdf", path = "./", width = 9, height = 8, dpi = 600)
+

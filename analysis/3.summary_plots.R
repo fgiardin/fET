@@ -432,8 +432,8 @@ ggarrange(b, a,
           labels = c("a", "b"),
           ncol = 2, nrow = 1
           )
-ggsave("Fig_binning.png", path = "./", width = 8, height = 4)
-
+ggsave("Fig_binning.png", path = "./", width = 8, height = 4, dpi = 600)
+ggsave("Fig_binning.pdf", path = "./", width = 8, height = 4, dpi = 600)
 
 ####*** CHARTS fET vs CWD (DNN) ***####
 
@@ -724,7 +724,7 @@ ggarrange(a, b, c, d, e, f,
           legend="top") # and place it in the bottom
 
 # save plot
-ggsave("alldensity.png", path = "./", width = 8, height = 12)
+ggsave("alldensity.png", path = "./", width = 8, height = 12, dpi = 600)
 
 # Distributions of CWD  ----------------------------------------------------
 # plot distributions of CWD for GLDAS vs FLUXNET to use in supplementary material
