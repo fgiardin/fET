@@ -76,7 +76,7 @@ ddf_CWD_gldas <- mct(
     mutate(date = lubridate::date(date)) %>%  # needed to average at daily level
     group_by(date) %>% #group_by(date, hour) %>%
     summarise(
-      water_balance = sum(water_balance, na.rm = TRUE), # SUM (altrimenti sono tipo valori istantanei)
+      water_balance = sum(water_balance, na.rm = TRUE), # SUM
     ) %>%
     na.omit(),
   "water_balance",
@@ -86,9 +86,6 @@ ddf_CWD_gldas <- mct(
 # save CWD
 CWD_name = sprintf("%s/ddf_CWD_gldas_%s.RData", gldas_path, site_ID)
 save(ddf_CWD_gldas, file = CWD_name)
-
-save(ddf_CWD_gldas, file = "./ddf_CWD_gldas_US-SRG.RData") ### XXX delete me
-ddf_CWD_gldas <- ddf_CWD
 
 
 #### merge with fluxnet ddf ####

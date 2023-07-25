@@ -1,4 +1,5 @@
 scatterheat <- function(df, X, Y, title, path){
+
   df <- df %>%
     as_tibble() %>%
     ungroup() %>%
@@ -7,6 +8,8 @@ scatterheat <- function(df, X, Y, title, path){
 
   # linear regression
   lm_model <- lm(Y ~ X , data=df, na.action = na.omit)
+  slope <- coef(lm_model)["X"]
+  intercept <- coef(lm_model)["(Intercept)"]
 
   # calculate metrics
   sd_X = sd(df$X, na.rm = TRUE) #calculate standardised slope
@@ -20,9 +23,9 @@ scatterheat <- function(df, X, Y, title, path){
   # # to double check calculate R2 in two ways (from model and from yardstick)
   # subtitle = sprintf("R2 = %.3f (%.3f), RMSE = %.3f, Slope = %.3f, N = %1.0f", summary(lm_model)$r.squared, r2$.estimate, rmse$.estimate, sd_slope, N)
 
-  # calculate R2 in one way (checked two methods above and are consistent)
-  #subtitle = sprintf("R2 = %.2f, RMSE = %.2f, N = %1.0f", r2$.estimate, rmse$.estimate, N)
-  subtitle = sprintf("R2 = %.2f, RMSE = %.2f", r2$.estimate, rmse$.estimate)
+  # calculate R2 with yardstick (both methods above are consistent)
+  # subtitle = sprintf("R2 = %.2f, RMSE = %.2f", r2$.estimate, rmse$.estimate)
+  subtitle <- bquote(italic(R^2)~" = " ~ .(round(r2$.estimate, 2)) ~ ", RMSE = " ~ .(round(rmse$.estimate, 2)))
 
   # adjust axis names
   if(X == "nn_act"){
@@ -53,24 +56,35 @@ scatterheat <- function(df, X, Y, title, path){
     axisY = Y
   }
 
-  # density plot
-  png(filename = path, width = 4, height = 4.2, units = 'in', res = 300)
-  par(mar=c(5 ,4.5,2,1)+.1, font.main = 1, cex.lab = 1.1) # The 'mar' argument of 'par' sets the width of the margins in the order: 'bottom', 'left', 'top', 'right'. The default is to set 'left' to 4
-  plot.new()
-  plot.window(xlim = c(0,6),
-              ylim = c(0,6))
-  # xlim = c(min(df$X, na.rm=TRUE),max(df$X, na.rm=TRUE)),
-  # ylim = c(min(df$Y, na.rm=TRUE),max(df$Y, na.rm=TRUE)))
-  heatscatterpoints(x = df$X, y = df$Y)
-  abline(lm_model, col = 'red', lwd = 1)
-  abline(c(0,1), lty=3)
+  # density plot on ggplot
+  a <- heatscatter(x = df$X, y = df$Y, ggplot = TRUE)
+  a <- a +
+    labs(
+      y = axisY,
+      x = axisX,
+      title = title,
+      subtitle = subtitle
+    ) +
+    scale_y_continuous(breaks = c(0, 2, 4, 6), limits = c(-0.1,6.3), expand = c(0, 0)) +
+    scale_x_continuous(breaks = c(0, 2, 4, 6), limits = c(-0.1,6.3), expand = c(0, 0)) +
+    theme_classic() +
+    theme(
+      axis.text=element_text(size = 14),
+      axis.title=element_text(size = 14),
+      legend.text=element_text(size=14),
+      plot.title = element_text(hjust = 0.5, size = 16), # center and bold title
+      plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
+      axis.line=element_blank(), # remove axis line (otherwise overlap with box)
+      plot.subtitle=element_text(hjust=0.5),
+      axis.ticks.length = unit(0.25, "cm"), # longer ticks
+      panel.border = element_rect(  # box around figure
+        color = "black",
+        fill = NA,
+        size = 1),
+    ) +
+    geom_abline(slope = slope, intercept = intercept, color = "red") +
+    geom_abline(intercept = 0, slope = 1, color = "black", linetype = "dashed")
 
-  # X-axis
-  axis(1, at = c(0, 2, 4, 6))
-  # Y-axis
-  axis(2, at = c(0, 2, 4, 6))
 
-  title(xlab = axisX, ylab = axisY, main = title, sub = subtitle, cex.sub=0.8)
-  box()
-  dev.off()
+  return(a = a)
 }

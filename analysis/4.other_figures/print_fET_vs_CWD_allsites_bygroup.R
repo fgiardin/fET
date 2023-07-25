@@ -39,7 +39,7 @@ ddf_allsites <- do.call(
 plot_allsites_fvar <- plot_allsites_fvar %>%
   left_join(ddf_allsites, by = c("date", "name_site"))
 
-# remove outliers and scale EVI (not working really well)
+# remove outliers and scale EVI
 plot_allsites_EVI_raw <- plot_allsites_fvar %>%
   group_by(name_site) %>%
   # # in the end we do not normalize EVI (too noisy, it becomes even more) + you can see the decline even without normalization

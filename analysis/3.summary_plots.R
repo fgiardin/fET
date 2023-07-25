@@ -137,22 +137,12 @@ scatter_plots <- scatter_plots_raw %>%
 
 
 ####*** SCATTERS ML MODEL ***####
-# Figure 1A
-file = sprintf("./scatter_nn_act-obs_allsites_1A.png")
-scatterheat(scatter_plots, "obs", "nn_act", "All days", file)
-
-# Figure 1B
-file = sprintf("./scatter_nn_pot-obs_moist_1B.png")
-scatterheat(scatter_plots %>% dplyr::filter(moist), "obs", "nn_pot", "Moist days", file)
-
-# now in supplementary figures
+# supplementary figures
 file = sprintf("./scatter_nn_act-pot_all_S1A.png")
 scatterheat(scatter_plots %>% dplyr::filter(moist), "nn_act", "nn_pot", "Moist Days", file)
 
 file = sprintf("./scatter_nn_pot-obs_dry_S1B.png")
 scatterheat(scatter_plots %>% dplyr::filter(!moist), "obs", "nn_pot", "Dry days", file)
-
-
 
 
 ####*** SCATTERS LINEAR MODEL ***####
@@ -190,9 +180,6 @@ coeff = lm_model[["coefficients"]][["NETRAD_mass"]]
 scatter_linear = scatter_linear %>%
   mutate(NETRAD_mass_coeff = NETRAD_mass*coeff)
 
-# scatter linear model
-file = sprintf("./scatter_nn_pot-obs_moist_linear_1D.png")
-scatterheat(scatter_linear %>% dplyr::filter(moist), "obs", "NETRAD_mass_coeff", "Moist days", file)
 
 
 ####*** SCATTERS PRIESTLEY-TAYLOR MODEL ***####
@@ -230,9 +217,30 @@ coeff = lm_model[["coefficients"]][["pet_splash"]]
 scatter_priestley = scatter_priestley %>%
   mutate(pet_splash_coeff = pet_splash*coeff)
 
+
+####*** compose final figure scatters ***####
+devtools::load_all(".")
+# Figure 1A
+file = sprintf("./scatter_nn_act-obs_allsites_1A.png")
+a <- scatterheat(scatter_plots, "obs", "nn_act", "All days", file)
+
+# Figure 1B
+file = sprintf("./scatter_nn_pot-obs_moist_1B.png")
+b <- scatterheat(scatter_plots %>% dplyr::filter(moist), "obs", "nn_pot", "Moist days", file)
+
 # scatter priestley-taylor
 file = sprintf("./scatter_nn_pot-obs_moist_priestley_1C.png")
-scatterheat(scatter_priestley %>% dplyr::filter(moist), "obs", "pet_splash_coeff", "Moist days", file)
+c <- scatterheat(scatter_priestley %>% dplyr::filter(moist), "obs", "pet_splash_coeff", "Moist days", file)
+
+# scatter linear model
+file = sprintf("./scatter_nn_pot-obs_moist_linear_1D.png")
+d <- scatterheat(scatter_linear %>% dplyr::filter(moist), "obs", "NETRAD_mass_coeff", "Moist days", file)
+
+all <- ggarrange(a, b, c, d,
+          labels = "auto",
+          ncol = 2, nrow = 2) # and place it in the bottom
+# save plot
+ggsave("allscatters.png", path = "./", width = 8, height = 9, dpi = 600)
 
 # save scatter plot data for additional figures
 scatter_plots_all = scatter_plots %>%
