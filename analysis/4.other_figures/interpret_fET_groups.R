@@ -42,10 +42,10 @@ texture_plot <- table1 %>%
   mutate(color = cluster)
 
 # create colors
-texture_plot$color <- gsub('high fET', '#e9c46a', texture_plot$color)
-texture_plot$color <- gsub('medium fET', '#f4a261', texture_plot$color)
-texture_plot$color <- gsub('low fET', '#e76f51', texture_plot$color)
-colors = c("#e9c46a", "#f4a261", "#e76f51") # for legend
+texture_plot$color <- gsub('high fET', '#3A5ECC', texture_plot$color)
+texture_plot$color <- gsub('medium fET', '#F6C59D', texture_plot$color)
+texture_plot$color <- gsub('low fET', '#e55b39', texture_plot$color)
+colors = c("#3A5ECC", "#F6C59D", "#e55b39") # for legend
 
 png("triangular_stexture.png", width = 3500, height = 3300, res = 600) # save at 600 DPI
 soil.texture(texture_plot[,2:4],
@@ -207,9 +207,9 @@ c <- ggplot(table1, aes(x = cluster, y = ai, fill = cluster)) +
         axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
         plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm") # set plot margins (useful when creating combined figure)
         ) +
-  scale_fill_manual(values = c("high fET" = "#e9c46a",
-                               "medium fET" = "#f4a261",
-                               "low fET" = "#e76f51")) +  # set colors
+  scale_fill_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39")) +  # set colors
   scale_y_continuous(breaks = seq(0, 2, 0.25)) # adjust y axis ticks
 plot(c)
 
@@ -244,9 +244,9 @@ d <- ggplot(table1, aes(x = cluster, y = gti, fill = cluster)) +
     axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
     plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm")
   ) +
-  scale_fill_manual(values = c("high fET" = "#e9c46a",
-                               "medium fET" = "#f4a261",
-                               "low fET" = "#e76f51")) +
+  scale_fill_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39")) +
   scale_y_continuous(breaks = seq(0, 10, 2)) # change y axis label (but not limits)
 plot(d)
 
@@ -280,9 +280,9 @@ e <- ggplot(table1, aes(x= cluster, y = MAP_worldclim, fill = cluster)) +
     axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
     plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm")
   ) +
-  scale_fill_manual(values = c("high fET" = "#e9c46a",
-                               "medium fET" = "#f4a261",
-                               "low fET" = "#e76f51")) +
+  scale_fill_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39")) +
   scale_y_continuous(breaks = seq(0, 2000, 250))
 e
 
@@ -306,9 +306,9 @@ f <- ggplot(table1, aes(x = cluster, y = MAT_worldclim, fill = cluster)) +
     plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"),
     axis.line=element_blank(),  # remove axis line (otherwise overlap with box)
   ) +
-  scale_fill_manual(values = c("high fET" = "#e9c46a",
-                               "medium fET" = "#f4a261",
-                               "low fET" = "#e76f51")) +
+  scale_fill_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39")) +
   scale_y_continuous(breaks = seq(0, 30, 5))
 f
 
