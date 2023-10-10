@@ -376,9 +376,9 @@ bw <- (2 * IQR(clusters$median_fvar, na.rm = TRUE)) / (length(clusters$median_fv
 
 # change name of groups for plot
 clusters_plot <- clusters %>%
-  mutate(cluster = str_replace(cluster, "fET", "fET sites")) %>%
+  # mutate(cluster = str_replace(cluster, "fET", "fET sites")) %>%
   droplevels() # drop old levels
-clusters_plot$cluster <- factor(clusters_plot$cluster, levels = c("low fET sites", "medium fET sites", "high fET sites"))
+clusters_plot$cluster <- factor(clusters_plot$cluster, levels = c("low fET", "medium fET", "high fET"))
 
 # calculate average weight of each group (average fET inside each group)
 mu <- plyr::ddply(clusters_plot, "cluster", summarise, grp.mean=mean(median_fvar, na.rm = TRUE))
@@ -404,7 +404,13 @@ a <- ggplot(clusters_plot,
   scale_x_continuous(breaks = seq(0, 1.4, 0.2), limits = c(0, 1.5), expand = c(0, 0)) +
   geom_vline(data=mu, aes(xintercept=grp.mean, color=cluster),
              linetype="dashed")  +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 16), breaks = seq(0, 15, 5))
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 16), breaks = seq(0, 15, 5)) +
+  scale_fill_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39")) +
+  scale_color_manual(values = c("high fET" = "#3A5ECC",
+                               "medium fET" = "#F6C59D",
+                               "low fET" = "#e55b39"))
 plot(a)
 
 # fVAR all sites

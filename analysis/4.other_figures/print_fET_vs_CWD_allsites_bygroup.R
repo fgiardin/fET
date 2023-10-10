@@ -1,4 +1,4 @@
-# Script to print fET vs CWD site-by-site (1 plot per fET group)
+# Script to print fET vs CWD site-by-site (group to 1 plot per fET group)
 # originally using facet_wrap but the density function didn't work properly
 
 # load packages

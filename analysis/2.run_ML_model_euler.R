@@ -159,35 +159,35 @@ for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var")){
 
   ###*** HP TUNING ***####
   print("LAUNCH HP TUNING")
-  # # create a subdirectory for every site (to avoid run directories with same name updated at the same time)
-  # runs_path = sprintf("/cluster/scratch/fgiardina/%s", sitename)
-  # dir.create(runs_path)
-  # runs <- tuning_run("./R2/keras_grid_search.R",  # See methods for how we defined the tuning
-  #                    flags = list(
-  #                      nodes1 = c(8, 16, 32, 64),
-  #                      nodes2 = c(8, 16, 32, 64),
-  #                      nodes3 = c(8, 16, 32, 64),
-  #                      nodes4 = c(8, 16, 32, 64),
-  #                      nodes5 = c(8, 16, 32, 64),
-  #                      num_layers = c(1, 2, 3, 4, 5),
-  #                      optimizer = c("adam"),
-  #                      activation = c("relu"),
-  #                      batch_size = c(16, 32, 64),
-  #                      epochs = c(10, 20, 30),
-  #                      learning_rate = c(0.01)
-  #                    ),
-  #                    sample = 0.05, # pervarcentage of the total models to assess: 0.05; faster: 0.00005
-  #                    runs_dir = runs_path # don't save output directly in /runs (otherwise the high number of generated log files will clog Euler)
-  # )
-  #
-  # # save output
-  # file = sprintf("%s/runs_%s.RData", data_frames_path, sitename)
-  # save(runs, file = file)
-  # print("HP TUNING COMPLETED")
-  #
-  # # delete all logfiles of runs (otherwise there will be too many saved files and Euler will explode)
-  # clean_runs() # first archive them (otherwise won't delete)
-  # purge_runs() # then delete them
+  # create a subdirectory for every site (to avoid run directories with same name updated at the same time)
+  runs_path = sprintf("/cluster/scratch/fgiardina/%s", sitename)
+  dir.create(runs_path)
+  runs <- tuning_run("./R2/keras_grid_search.R",  # See methods for how we defined the tuning
+                     flags = list(
+                       nodes1 = c(8, 16, 32, 64),
+                       nodes2 = c(8, 16, 32, 64),
+                       nodes3 = c(8, 16, 32, 64),
+                       nodes4 = c(8, 16, 32, 64),
+                       nodes5 = c(8, 16, 32, 64),
+                       num_layers = c(1, 2, 3, 4, 5),
+                       optimizer = c("adam"),
+                       activation = c("relu"),
+                       batch_size = c(16, 32, 64),
+                       epochs = c(10, 20, 30),
+                       learning_rate = c(0.01)
+                     ),
+                     sample = 0.05, # pervarcentage of the total models to assess: 0.05; faster: 0.00005
+                     runs_dir = runs_path # don't save output directly in /runs (otherwise the high number of generated log files will clog Euler)
+  )
+
+  # save output
+  file = sprintf("%s/runs_%s.RData", data_frames_path, sitename)
+  save(runs, file = file)
+  print("HP TUNING COMPLETED")
+
+  # delete all logfiles of runs (otherwise there will be too many saved files and Euler will explode)
+  clean_runs() # first archive them (otherwise won't delete)
+  purge_runs() # then delete them
 
   # directly load tuned HP
   HP_name = sprintf("%s/data_frames/runs_%s.RData", dir_name, sitename)
