@@ -162,7 +162,7 @@ for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var")){
   # create a subdirectory for every site (to avoid run directories with same name updated at the same time)
   runs_path = sprintf("/cluster/scratch/fgiardina/%s", sitename)
   dir.create(runs_path)
-  runs <- tuning_run("./R2/keras_grid_search.R",  # See methods for how we defined the tuning
+  runs <- tuning_run("./R/keras_grid_search.R",  # See methods for how we defined the tuning
                      flags = list(
                        nodes1 = c(8, 16, 32, 64),
                        nodes2 = c(8, 16, 32, 64),
