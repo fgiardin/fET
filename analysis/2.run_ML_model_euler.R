@@ -33,13 +33,14 @@ library(LSD)
 #flag for fT
 transpiration = 0 # available only for: "US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var"
 
-for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var")){
+# loop over some example sites
+for (i in c("AU-How")){  # c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var")
   sitename = i
   print(i)
 
   # create directory for results
-  dir_name = sprintf("data/output/%s", sitename) # path to directory of site (gia creata in pre_process)
-  data_frames_path = sprintf("%s/data_frames", dir_name) # path to dir of dataframes (gia creata)
+  dir_name = sprintf("data/output/%s", sitename) # path to directory of site (already created in 1.data_screening_euler)
+  data_frames_path = sprintf("%s/data_frames", dir_name) # path to dir of dataframes (already created)
   results_path = sprintf("%s/results", dir_name)
 
   # create results path
@@ -48,7 +49,8 @@ for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var")){
   dir.create(data_frames_path)
 
   # load dataframes
-  # CWD + DDF
+  # CWD: contains CWD calculated with the continuous timeseries of ET and P
+  # DDF: contains the data pre-processed as in 1.data_screening_euler.R
   CWD_name = sprintf("%s/data_frames/ddf_CWD_%s.RData", dir_name, sitename)
   ddf_name = sprintf("%s/data_frames/ddf_%s.RData", dir_name, sitename)
   load(CWD_name)
@@ -189,9 +191,9 @@ for (i in c("US-Ton", "IT-Cpz", "AU-How", "DK-Sor", "US-MMS", "US-Var")){
   clean_runs() # first archive them (otherwise won't delete)
   purge_runs() # then delete them
 
-  # directly load tuned HP
-  HP_name = sprintf("%s/data_frames/runs_%s.RData", dir_name, sitename)
-  load(HP_name)
+  # # directly load tuned HP (available in directory)
+  # HP_name = sprintf("%s/data_frames/runs_%s.RData", dir_name, sitename)
+  # load(HP_name)
 
   # choose best run
   best_run = runs %>%
