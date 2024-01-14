@@ -26,6 +26,7 @@ library(data.table)
 
 # load df
 fluxnet <- readRDS("~/data/fLUE/modobs_fluxnet2015_s11_s12_s13_with_SWC_v3.rds")
+# locally, the file linked above is here: data/modobs_fluxnet2015_s11_s12_s13_with_SWC_v3.rds
 
 ddf_flue_raw <- fluxnet[[sitename]]
 

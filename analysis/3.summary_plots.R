@@ -1018,6 +1018,28 @@ perc_7 <- 1 - nrow(hhdf_7 %>% dplyr::filter(name_site %in% vec_sites))/
 
 
 
+# calculate bias and mean bias between GLDAS and obs ----------------------
+
+library(dplyr)
+
+# Joining the two datasets
+combined_df <- inner_join(plot_e %>% # only keep rows that are in both
+                            dplyr::select(date, name_site, fvar),
+                          plot_f %>%
+                            dplyr::select(date, name_site, fvar, fvar_scaled) %>%
+                            rename(fvar_gldas = fvar,
+                                   fvar_gldas_scaled = fvar_scaled),
+                          by = c("date", "name_site"))
+
+# Calculating the difference and then the mean
+result <- combined_df %>%
+  mutate(bias = fvar_gldas - fvar) %>%
+  summarise(mean_bias = mean(bias, na.rm = TRUE)) %>%
+  pull(mean_bias)
+
+
+
+
 
 
 

@@ -24,6 +24,7 @@ process_ldas <- function(path, layer, site_ID){
   siteinfo_fluxnet2015 <- ingestr::siteinfo_fluxnet2015 %>% # extract list of sites with info from ingestr
     dplyr::filter(sitename == site_ID)
 
+  # source all files (GLDAS data are stored in files that are global images of a specific time)
   files <- list.files(path,"*.nc4", full.names = TRUE)
 
   output <- lapply(files, function(file){
@@ -42,11 +43,11 @@ process_ldas <- function(path, layer, site_ID){
     # extract variable specified in 'layer'
     s <- stack(file, varname = layer)
 
-    df <- siteinfo_fluxnet2015 %>% # list of fluxnet sitenames with lon and lat
+    df <- siteinfo_fluxnet2015 %>% # siteinfo_fluxnet2015 contains the lon and lat of the site we're interested in
       rowwise() %>%
       do({
 
-        values <- raster::extract(s, matrix(c(.$lon, .$lat),1,2))[1,]
+        values <- terra::extract(s, matrix(c(.$lon, .$lat),1,2))[1,] # indexes are for formatting and accessing the real numbers and remove column/row names
 
         data.frame(
           sitename = .$sitename,
