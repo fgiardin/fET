@@ -1,4 +1,5 @@
 [![DOI](https://zenodo.org/badge/491055054.svg)](https://zenodo.org/badge/latestdoi/491055054)
+
 For full details on the methodology and results please refer to the above manuscript folder. For a step-by-step guide on how to reproduce the analysis, refer to the 'Instructions' below. All code is licensed under AGPL-v3, and the manuscript and data are licensed as CC-BY. Please review the individual directories and their LICENSE file for more information. 
 
 ![Fig. 1 Location of sites considered in this study, colored by their respective group of fractional reduction in evapotranspiration (fET group, see section 2.5). Blue dots: 'high fET' group. Yellow dots: 'medium fET' group. Red dots: 'low fET' group. Black crosses: sites that were excluded from the initial list of 135 sites considered in this study. Coastlines were downloaded using R package 'rnaturalearth' (Massicotte & South, 2023).](manuscript/Figures/world_map.png)
@@ -18,7 +19,7 @@ For full details on the methodology and results please refer to the above manusc
 First things first, clone this repo to your local computer:
 
 ```
-git clone https://github.com/computationales/fET
+git clone https://github.com/fgiardin/fET/
 ```
 
 To reproduce the analysis and figures, you can follow the steps described in the `analysis` folder and its 'README.md' file. To avoid overwriting the dataframes already loaded in this repo, the scripts contained in the `analysis` folder will save their output in the main directory of the project (aka the directory where this README also is). 
