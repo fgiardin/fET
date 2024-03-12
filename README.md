@@ -1,11 +1,11 @@
-[![DOI](https://zenodo.org/badge/491055054.svg)](https://zenodo.org/badge/latestdoi/491055054)
-
-For full details on the methodology and results please refer to the above manuscript folder. For a step-by-step guide on how to reproduce the analysis, refer to the 'Instructions' below. All code is licensed under AGPL-v3, and the manuscript and data are licensed as CC-BY. Please review the individual directories and their LICENSE file for more information. 
-
-![Fig. 1 Location of sites considered in this study, colored by their respective group of fractional reduction in evapotranspiration (fET group, see section 2.5). Blue dots: 'high fET' group. Yellow dots: 'medium fET' group. Red dots: 'low fET' group. Black crosses: sites that were excluded from the initial list of 135 sites considered in this study. Coastlines were downloaded using R package 'rnaturalearth' (Massicotte & South, 2023).](manuscript/Figures/world_map.png)
-###### Fig. 1 Location of sites considered in this study, colored by their respective group of fractional reduction in evapotranspiration (fET group, see section 2.5). Blue dots: 'high fET' group. Yellow dots: 'medium fET' group. Red dots: 'low fET' group. Black crosses: sites that were excluded from the initial list of 135 sites considered in this study. Coastlines were downloaded using R package 'rnaturalearth' (Massicotte & South, 2023).
 
 # Diagnosing evapotranspiration responses to water deficit across biomes using deep learning
+For full details on the methodology and results please refer to the above manuscript folder. For a step-by-step guide on how to reproduce the analysis, refer to the 'Instructions' below. All code is licensed under AGPL-v3, and the manuscript and data are licensed as CC-BY. Please review the individual directories and their LICENSE file for more information. 
+
+[![DOI](https://zenodo.org/badge/491055054.svg)](https://zenodo.org/badge/latestdoi/491055054)
+
+
+## Abstract
 •	Accounting for water limitation is key to determining vegetation sensitivity to drought. Quantifying water limitation effects on ET is challenged by the heterogeneity of vegetation types, climate zones and vertically along the rooting zone. 
 
 •	Here, we train deep neural networks using flux measurements to study ET responses to progressing drought conditions. We determine a water stress factor (fET) that isolates ET reductions from effects by atmospheric aridity and other co-varying drivers. We regress fET against the cumulative water deficit (CWD), which reveals the control of whole-column moisture availability. 
