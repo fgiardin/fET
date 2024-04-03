@@ -5,7 +5,7 @@ This repository provides code and intermediary data to reproduce the analysis of
 
 All code is licensed under AGPL-v3, and the manuscript and data are licensed as CC-BY. Please review the individual directories and their LICENSE file for more information. You can cite the code in this repository as follows:
 
-> Giardina et al. (2023). Diagnosing evapotranspiration responses to water deficit across biomes using deep learning: code and intermediary data. [https://doi.org/10.5281/zenodo.7853208]( https://doi.org/10.5281/zenodo.7853208)
+> Giardina et al. (2023). Diagnosing evapotranspiration responses to water deficit across biomes using deep learning: code and intermediary data. [https://doi.org/10.5281/zenodo.8186408]( https://doi.org/10.5281/zenodo.8186408)
 
 
 ## Abstract
