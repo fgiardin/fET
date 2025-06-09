@@ -7,6 +7,7 @@ All code is licensed under AGPL-v3, and the manuscript and data are licensed as 
 
 > Giardina et al. (2023). Diagnosing evapotranspiration responses to water deficit across biomes using deep learning: code and intermediary data. [https://zenodo.org/doi/10.5281/zenodo.7853208]( https://zenodo.org/doi/10.5281/zenodo.7853208)
 
+You can find the published manuscript here: https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.19197
 
 ## Abstract
 •	Accounting for water limitation is key to determining vegetation sensitivity to drought. Quantifying water limitation effects on ET is challenged by the heterogeneity of vegetation types, climate zones and vertically along the rooting zone. 
